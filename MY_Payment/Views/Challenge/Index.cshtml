@@ -1,0 +1,65 @@
+﻿@{
+    ViewData["Title"] = "Challenge Page";
+}
+
+<div class="container" style="display: flex; justify-content: center; align-items: center; height: 100vh">
+    <iframe id="render" style="width:100%;height: 100vh;overflow:hidden;" srcdoc="@ViewBag.iframe"></iframe>
+</div>
+
+
+@if (ViewBag.statusPayment != null && ViewBag.statusPayment == "ERROR")
+{
+    <div class="container" style="display: flex; justify-content: center; align-items: center; height: 100vh">
+        <div style="width:100%;text-align: center;">
+            <div style="color: #D8000C;background-color: #FFBABA;border-radius: 10px;filter: drop-shadow(3px 3px 3px rgba(0, 0, 0, 0.6));">
+                <p style="font-size: 19px;"><b>Ocurri&oacute; un error al procesar el d&eacute;bito.</b></p>
+            </div>
+            <div style="width:100%;text-align: center;">
+                <img src="https://api-dev.siberian.com.ec/admin/images/app/payment-fail.jpg" height="220" />
+            </div>
+        </div>
+        <button class="btn btn-success btn-success-my px-5 w-100 fs-5 white-color-my" type="button" onclick="()">Finalizar</button>
+    </div>
+}
+
+<div id="idLoading">
+    <div id="Background"></div>
+    <div id="Progress" class="h-100 d-flex align-items-center justify-content-center">
+        <div class="row">
+            <div class="container">
+                <div class="col">
+                    <center>
+                        <div class="spinner-border text-success" role="status">
+                            <span class="visually-hidden"></span>
+                        </div>
+                    </center>
+                </div>
+                <div class="col">
+                    <p style="text-align: center; font-weight: bold;">
+                        Procesando su pago, espere por favor...
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        <script type="text/javascript">
+
+            $(document).ready(function() {
+                var showLoading = '@ViewBag.showLoading';
+                console.log('loading: ', showLoading);
+                if (showLoading == 'Y') {
+                    document.getElementById('idLoading').style.visibility = 'visible';
+                } else {
+                    document.getElementById('idLoading').style.visibility = 'hidden';
+                }
+            })
+
+        </script>
+    }
+}

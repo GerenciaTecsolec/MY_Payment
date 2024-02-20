@@ -1,0 +1,373 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+/*html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+    margin-bottom: 60px;
+    height: 100%;
+}*/
+
+html,
+body {
+    height: 100%;
+    background-color: #F6F6F6 !important;
+    overflow: hidden !important;
+}
+
+.container-center {
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+#Background {
+    position: fixed;
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    overflow: hidden;
+    padding: 0;
+    margin: 0;
+    background-image: url('https://www.tecsolec.com/chef/images/background-app.png');
+    background-repeat: repeat;
+    background-position: center;
+    background-color: #F0F0F0;
+    filter: alpha(opacity=80);
+    opacity: 0.8;
+    z-index: 100000;
+}
+
+.asLoader {
+    position: fixed;
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    overflow: hidden;
+    padding: 0;
+    margin: 0;
+    background-image: url('https://www.tecsolec.com/chef/images/background-app.png');
+    background-repeat: repeat;
+    background-position: center;
+    background-color: #F0F0F0;
+    filter: alpha(opacity=80);
+    opacity: 0.8;
+    z-index: 100000;
+}
+
+#Progress {
+    position: fixed;
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    z-index: 100001;
+    border-radius: 10px;
+    background-size: 80px;
+}
+
+.img-rounded-corners {
+    border-radius: 20px !important;
+    border: 3px solid #d1d1d1;
+}
+
+.btn-success-my {
+    background-color: #19a182 !important;
+    color: #FFFFFF !important;
+    border-radius: 10px !important;
+    font-weight: 300 !important;
+    font-size: 19px !importan
+}
+
+.white-color-my {
+    background-color: #19a182 !important;
+    color: #FFFFFF !important;
+}
+
+:root {
+    --purple: #f1e60b;
+    --purple2: #f2ee9e;
+    --white: #595555;
+    --height: 222px;
+    --width: 350px;
+    --font: "Overpass Mono", monospaced;
+    --masterFont: "Raleway", sans-serif;
+}
+
+body {
+    /*--baseColor: #c2e59c;*/
+   /* overflow: hidden;
+    margin: 0;
+    padding: 0;*/
+    /*background-color: #F6F6F6 !important;*/
+    /* background: var(--baseColor);
+        background: linear-gradient(to right, #64b3f4, var(--baseColor)); */
+}
+
+.credit {
+    --heightCalc: - calc((var(--height) / 2) - 10px);
+    --widthCalc: calc(var(--width) / 2);
+    height: var(--height);
+    width: var(--width);
+    min-width: var(--width);
+    background: linear-gradient(90deg, var(--purple), var(--purple2));
+    border-radius: 10px;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+    margin: 10px auto;
+    position: relative;
+    filter: drop-shadow(3px 3px 3px rgba(0, 0, 0, 0.6));
+    /*  transform: translateY(calc(50% - 10px)); */
+}
+
+.credit__figure {
+    position: relative;
+    height: 40px;
+    margin: 0;
+}
+
+    .credit__figure::after {
+        content: "Mercado Ya";
+        font-size: 0.55em;
+        letter-spacing: 4px;
+        color: var(--white);
+        position: absolute;
+        width: 100%;
+        text-align: center;
+        bottom: calc(-100% - 15px);
+    }
+
+.credit__figure--logo {
+    --widthLogo: 130px;
+    width: var(--widthLogo);
+    position: absolute;
+    right: 50%;
+    transform: translate(calc(var(--widthLogo) / 2), 20px);
+}
+
+.credit-brand-figure-logo {
+    --widthLogo: 48px;
+    width: var(--widthLogo);
+    position: absolute;
+    right: 49%;
+    transform: translate(calc(var(--widthLogo) / 2), 10px);
+}
+
+.credit__reader {
+    width: 50px;
+    height: 40px;
+    background: radial-gradient(#d9a56c, #b18457);
+    border-radius: 5px;
+    position: absolute;
+    top: 50%;
+    transform: translate(33px, -40px);
+    overflow: hidden;
+}
+
+.credit__reader--risk {
+    width: 50px;
+    height: 40px;
+    border-radius: 13px;
+    background: transparent;
+    border: 1px solid #666;
+    position: absolute;
+    z-index: 0;
+}
+
+.credit__reader--risk-one {
+    transform: translate(37px, 15px);
+}
+
+.credit__reader--risk-two {
+    transform: translate(15px, 30px);
+}
+
+.credit__reader--risk-three {
+    transform: translate(-37px, -15px);
+}
+
+.credit__reader--risk-four {
+    transform: translate(-15px, -30px);
+}
+
+.credit__number {
+    font-family: var(--font);
+    font-size: 1.15em;
+    font-weight: normal;
+    color: var(--white);
+    letter-spacing: 2.5px;
+    text-align: center;
+    margin-left: -20px;
+    margin-top: 80px;
+    z-index: 1;
+    position: relative;
+    filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.3));
+}
+
+.credit__number::before,
+.credit__number::after {
+    font-family: Arial;
+    color: rgba(0, 0, 0, 0.4);
+    font-size: 0.4em;
+    position: absolute;
+    letter-spacing: 0px;
+}
+
+.credit__number::before {
+    /*content: "5032";*/
+    transform: translate(15px, 22px);
+}
+
+.credit__number::after {
+    content: "Valid thru";
+    width: 80px;
+    transform: translate(-215px, 22px);
+}
+
+.credit__dates {
+    position: absolute;
+    width: 40%;
+    font-size: .9em;
+    display: flex;
+    justify-content: space-between;
+    color: var(--white);
+    font-family: var(--font);
+    bottom: 22%;
+    transform: translate(60px, 0px);
+}
+
+    .credit__dates span {
+        filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.3));
+    }
+
+.credit__name {
+    font-family: var(--font);
+    font-size: .9em;
+    font-weight: normal;
+    color: var(--white);
+    letter-spacing: 2.5px;
+    transform: translate(35px, 25px);
+    position: relative;
+    filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.3));
+}
+
+.credit__flag {
+    right: 10px;
+    top: 40%;
+    border-radius: 10px;
+    transform: translate(0, -28px);
+    position: absolute;
+    height: 58px;
+    width: 65px;
+}
+
+.credit__flag--globe {
+    --margin: 5px;
+    width: calc(100% - (var(--margin) * 2));
+    background-color: #b7b2b8;
+    height: 50%;
+    border-radius: 20px;
+    margin: var(--margin);
+    background: repeating-linear-gradient( 0deg, #dbd1dc, #dbd1dc 5px, #b2aab5 7px, #b2aab5 5px );
+}
+
+.credit__flag--globe::after,
+.credit__flag--globe::before {
+    content: "\f0ac";
+    font-family: FontAwesome;
+    color: rgba(0, 0, 0, 0.2);
+    font-size: 3em;
+    top: 6px;
+    left: 2px;
+    position: absolute;
+}
+
+.credit__flag--globe::after {
+    transform: translateX(10px);
+}
+
+.credit__flag--globe::before {
+    transform: translateX(25px);
+}
+
+.credit__flag--red {
+    position: absolute;
+    left: 5px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #ce0e1d;
+}
+
+.credit__flag--yellow {
+    position: absolute;
+    right: 5px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #e39833;
+}
+
+.credit__flag--yellow::after {
+    content: "MasterCard";
+    position: absolute;
+    font-size: 0.7em;
+    top: 50%;
+    transform: translate(-25px, -7px);
+    font-family: var(--masterFont);
+    font-style: italic;
+    font-weight: 800;
+    color: var(--white);
+    filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.5));
+    }
+
+
+.info, .success, .warning, .error, .validation {
+    border: 1px solid;
+    margin: 10px 0px;
+    padding: 4px 4px 4px 4px;
+    background-repeat: no-repeat;
+    background-position: 10px center;
+}
+
+.info {
+    color: #00529B;
+    background-color: #BDE5F8;
+}
+
+.success {
+    color: #4F8A10;
+    background-color: #DFF2BF;
+}
+
+.warning {
+    color: #9F6000;
+    background-color: #FEEFB3;
+}
+
+.error {
+    color: #D8000C;
+    background-color: #FFBABA;
+}
+
+.validation {
+    color: #D63301;
+    background-color: #FFCCBA;
+}

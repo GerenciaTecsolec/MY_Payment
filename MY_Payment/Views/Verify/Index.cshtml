@@ -1,0 +1,130 @@
+﻿@{
+    ViewData["Title"] = "Verify Page";
+}
+
+<div id="idLoading">
+    <div id="Background"></div>
+    <div id="Progress" class="h-100 d-flex align-items-center justify-content-center">
+        <div class="row">
+            <div class="container">
+                <div class="col">
+                    <center>
+                        <div class="spinner-border text-success" role="status">
+                            <span class="visually-hidden"></span>
+                        </div>
+                    </center>
+                </div>
+                <div class="col">
+                    <p style="text-align: center; font-weight: bold;">
+                        Procesando su pago, espere por favor...
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (ViewBag.statusPayment != null && ViewBag.statusPayment == "FAILED")
+{
+    <div class="container" style="display: flex; justify-content: center; align-items: center; height: 100vh">
+        <div style="width:100%;text-align: center;">
+            <div style="color: #D8000C;background-color: #FFBABA;border-radius: 10px;filter: drop-shadow(3px 3px 3px rgba(0, 0, 0, 0.6));">
+                <p style="font-size: 16px;"><b>D&eacute;bito no fue aprobado.</b></p>
+            </div>
+            <div style="width:100%;text-align: center;">
+                <img src="@ViewBag.hostUrl/images/app/payment-fail.jpg" height="220" />
+            </div>
+            <button class="btn btn-success btn-success-my px-5 w-100 fs-5 white-color-my" type="button" onclick="send_Data(true, 'FAILED','','')">Finalizar</button>
+        </div>
+    </div>
+}
+
+@if (ViewBag.statusPayment != null && ViewBag.statusPayment == "SUCCESS")
+{
+    <div class="container" style="display: flex; justify-content: center; align-items: center; height: 100vh">
+        <div style="width:100%;text-align: center;">
+            <div style="color: #4F8A10;background-color: #dff28f;border-radius: 10px;filter: drop-shadow(3px 3px 3px rgba(0, 0, 0, 0.6));">
+                <p style="font-size: 16px;"><b>D&eacute;bito procesado con &eacute;xito.</b></p>
+            </div>
+            <div style="width:100%;text-align: center;">
+                <img src="@ViewBag.hostUrl/images/app/payment-success.jpg" height="220" />
+            </div>
+        </div>
+        
+    </div>
+}
+
+@if (ViewBag.statusPayment != null && ViewBag.statusPayment == "ERROR")
+{
+    <div class="container" style="display: flex; justify-content: center; align-items: center; height: 100vh">
+        <div style="width:100%;text-align: center;">
+            <div style="color: #D8000C;background-color: #FFBABA;border-radius: 10px;filter: drop-shadow(3px 3px 3px rgba(0, 0, 0, 0.6));">
+                <p style="font-size: 16px;"><b>Ocurri&oacute; un error al procesar el d&eacute;bito.</b></p>
+            </div>
+            <div style="width:100%;text-align: center;">
+                <img src="@ViewBag.hostUrl/images/app/payment-fail.jpg" height="220" />
+            </div>
+            <button class="btn btn-success btn-success-my px-5 w-100 fs-5 white-color-my" type="button" onclick="send_Data(true, 'ERROR','','')">Finalizar</button>
+        </div>
+    </div>
+}
+
+
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        <script type="text/javascript">
+
+            var isFlutterInAppWebViewReady = false;
+            $(document).ready(function () {
+                console.log('entro aqui')
+                document.getElementById('idLoading').style.visibility = 'visible';
+
+                window.addEventListener("flutterInAppWebViewPlatformReady", function (event) {
+                    isFlutterInAppWebViewReady = true;
+                    console.log('isFlutterInAppWebViewReady');
+                });
+
+                var showLoading = '@ViewBag.showLoading';
+                console.log(showLoading);
+                if (showLoading == "Y") {
+                    document.getElementById('idLoading').style.visibility = 'visible';
+                } else {
+                    document.getElementById('idLoading').style.visibility = 'hidden';
+                }
+
+                var statusPayment = '@ViewBag.statusPayment';
+                var order = '@ViewBag.orderId';
+                var secuence = '@ViewBag.secuence';
+                console.log('statusPayment', statusPayment, order, secuence);
+                if (statusPayment == 'SUCCESS') {
+                    sleep(3000).then(() => { 
+                        document.getElementById('idLoading').style.visibility = 'visible'; 
+                        send_Data(false, 'SUCCESS', order, secuence); 
+                    });
+                }
+
+            })
+
+            function send_Data(errorExits, paymentStatus, orderId, secuence) {
+                var parameters = {
+                    error: errorExits,
+                    status: paymentStatus,
+                    order: orderId,
+                    secuence: secuence
+                }
+
+                window.flutter_inappwebview.callHandler('handlerFooWithArgs', { error: errorExits, status: paymentStatus, order: orderId, secuence: secuence  })
+                .then(function (result) {
+                        //console.log('result send to app flutter');
+                });
+            }
+
+            function sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+        </script>
+    }
+}

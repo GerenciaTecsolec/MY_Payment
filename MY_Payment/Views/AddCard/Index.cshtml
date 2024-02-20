@@ -1,0 +1,201 @@
+﻿@{
+    ViewData["Title"] = "Add Card Page";
+}
+<style>
+
+    body {
+        /* font-family: "Montserrat", monospace; */
+        font-size: 22px;
+    }
+
+    .panel {
+        margin: 30px auto;
+        background-color: #ffffff;
+        border: 1px solid #d1d1d1;
+        padding: 16px;
+        display: block;
+        width: 100%;
+        border-radius: 20px;
+        filter: drop-shadow(3px 3px 3px rgba(0, 0, 0, 0.6));
+    }
+
+    .btn {
+        background: #1aa182 !important;
+        /* Old browsers */
+        background: -moz-linear-gradient(top, #1fb694 0%, #1aa182 100%);
+        /* FF3.6-15 */
+        background: -webkit-linear-gradient(top, #1fb694 0%, #1aa182 100%);
+        /* Chrome10-25,Safari5.1-6 */
+        background: linear-gradient(to bottom, #1fb694 0%, #1aa182 100%);
+        /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+        filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#44afe7', endColorstr='#3198df', GradientType=0);
+        color: #fff;
+        display: block;
+        width: 100%;
+        border: 1px solid rgba(46, 86, 153, 0.0980392);
+        border-bottom-color: rgba(46, 86, 153, 0.4);
+        border-top: 0;
+        border-radius: 10px !important;
+        font-size: 15px;
+        text-shadow: rgba(46, 86, 153, 0.298039) 0px -1px 0px;
+        line-height: 34px;
+        /* font-family: "Montserrat", monospace; */
+        -webkit-font-smoothing: antialiased;
+        font-weight: 300 !important;
+        display: block;
+        margin-top: 20px;
+    }
+
+    .btn:hover {
+        cursor: pointer !important;
+        color: #ffffff !important;
+        background-color: #1fb694 !important;
+        border-radius: 13px !important;
+    }
+
+    .payment-form input, .payment-form select {
+        border: 1px solid #C9CCCF !important;
+    }
+
+</style>
+
+<link href="https://cdn.paymentez.com/ccapi/sdk/payment_stable.min.css" rel="stylesheet" type="text/css"/>
+
+@if (ViewBag.cardError != null && ViewBag.cardError == "SHOW")
+{
+    <div class="container" style="display: flex; justify-content: center; align-items: center; height: 100vh">
+        <div style="width:100%;text-align: center;">
+            <div style="color: #D8000C;background-color: #FFBABA;border-radius: 10px;filter: drop-shadow(3px 3px 3px rgba(0, 0, 0, 0.6));">
+                <p style="font-size: 16px;"><b>Ocurri&oacute; un error al agregar nueva tarjeta.</b></p>
+            </div>
+            <div style="width:100%;text-align: center;">
+                <img src="@ViewBag.hostUrl/images/app/add-card-error.jpg" height="220" />
+            </div>
+        </div>
+    </div>
+
+}
+<div class="panel">
+    <form id="add-card-form">
+        <div class="payment-form" id="my-card" data-capture-name="true" data-icon-colour="#569B29" data-exclusive-types="" data-invalid-card-type-message="Tarjeta invalida. Por favor ingresa una tarjeta Exito / Alkosto.">
+        </div>
+        <button class="btn">Agregar tarjeta</button>
+        <br />
+        <div id="messages"></div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+                <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+                <script src="https://cdn.paymentez.com/ccapi/sdk/payment_stable.min.js" charset="UTF-8"></script>
+                <script>
+                    $(function () {
+
+                        window.addEventListener("flutterInAppWebViewPlatformReady", function (event) {
+                            isFlutterInAppWebViewReady = true;
+                            console.log('isFlutterInAppWebViewReady');
+                        });
+
+                        var appCode = '@ViewBag.appCode';
+                        var appKey = '@ViewBag.appKey';
+                        var enviroment = '@ViewBag.enviroment';
+                        //console.log('enviroment:', enviroment);
+                        //console.log('appCode:', appCode);
+                        //console.log('appKey:', appKey);
+                        Payment.init(enviroment, appCode, appKey);
+
+                        let form = $("#add-card-form");
+                        let submitButton = form.find("button");
+                        let submitInitialText = submitButton.text();
+
+                        $("#add-card-form").submit(function (e) {
+                            let myCard = $('#my-card');
+                            let cardToSave = myCard.PaymentForm('card');
+                            if (cardToSave == null) {
+                                window.flutter_inappwebview.callHandler("return_data", {
+                                    status: "invalid_card",
+                                    token: "",
+                                    reference: "",
+                                    message: "invalid_card"
+                                })
+                                .then(function (result) {
+                                    console.log('result invalid card');
+                                });
+                            } else {
+                                submitButton.attr("disabled", "disabled").text("Procesando tu tarjeta...");
+                                var uid = '@ViewBag.uid';
+                                var email = '@ViewBag.email';
+                                Payment.addCard(uid, email, cardToSave, successHandler, errorHandler, myCard);
+                            }
+                            e.preventDefault();
+                        });
+
+
+                        let successHandler = function (cardResponse) {
+                            console.log('EXITO');
+                            console.log(cardResponse.card);
+                            if (cardResponse.card.status === 'valid') {
+                                console.log('valid');
+                                confirm_Data({
+                                    status: "success",
+                                    token: cardResponse?.card?.token,
+                                    reference: cardResponse?.card?.transaction_reference,
+                                    message: "the card entered has been correctly validated and added."
+                                });
+                            } else if (cardResponse.card.status === 'review') {
+                                console.log('review');
+                                confirm_Data({
+                                    status: "review",
+                                    token: cardResponse?.card?.token,
+                                    reference: cardResponse?.card.transaction_reference,
+                                    message: "the card entered is in review status"
+                                });
+                            } else {
+                                console.log('no indicado');
+                                confirm_Data({
+                                    status: cardResponse?.card?.status,
+                                    token: "",
+                                    reference: "",
+                                    message: cardResponse?.card?.message
+                                });
+                            }
+                            submitButton.removeAttr("disabled");
+                            submitButton.text(submitInitialText);
+                        };
+
+                        let errorHandler = function (err) {
+                            console.log("ERROR");
+                            console.log(err);
+                            confirm_Data({
+                                status: "error",
+                                token: "",
+                                reference: "",
+                                message: "When using the paymentez service an error occurred"
+                            });
+                            submitButton.removeAttr("disabled");
+                            submitButton.text(submitInitialText);
+                        };
+
+                    });
+
+                function sleep(ms) {
+                    return new Promise(resolve => setTimeout(resolve, ms));
+                }
+
+                function confirm_Data(data) {
+                    console.log('datos', data);
+                    window.flutter_inappwebview.callHandler('returnData', {
+                        status: data.status,
+                        token: data.token,
+                        reference: data.reference,
+                        message: data.message
+                    })
+                    .then(function (result) {
+                        console.log('result send to app flutter');
+                    });
+                }
+            </script>
+    }
+}

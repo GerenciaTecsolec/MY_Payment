@@ -1,0 +1,276 @@
+﻿@{
+    ViewData["Title"] = "Start Page";
+}
+
+@if (ViewBag.card != null)
+{
+    <div id="card">
+        <div class="container" style="display: flex; justify-content: center; align-items: center; height: 100vh">
+            <form>
+                <div class="credit">
+                    <figure class="credit__figure">
+                        <img src="@ViewBag.hostUrl/images/paymentez-logo.png" class="credit__figure--logo" />
+                    </figure>
+                    <div class="credit__reader">
+                        <div class="credit__reader--risk credit__reader--risk-one"></div>
+                        <div class="credit__reader--risk credit__reader--risk-two"></div>
+                        <div class="credit__reader--risk credit__reader--risk-three"></div>
+                        <div class="credit__reader--risk credit__reader--risk-four"></div>
+                    </div>
+                    <p class="credit__number">@ViewBag.card.number</p>
+                    <p class="credit__name">@ViewBag.card.holderName</p>
+                    <div class="credit__flag">
+                        <img src="@ViewBag.card.cardLogo" class="credit-brand-figure-logo" />
+                    </div>
+                </div>
+                <button class="btn btn-success btn-success-my px-5 w-100 fs-5 white-color-my" type="button" onclick="ConfirmPayment()" id="btnConfirm">Aceptar pago</button>
+                <div id="otp" style="display: none;">
+                    <div class="row mb-3">
+                        <div class="col-md-12 col-lg-12 mt-3">
+                            <label for="txtNombres" class="form-label">Codigo verificaci&oacute;n:</label>
+                            <input type="text" class="form-control form-control-sm" formControlName="txtOtp" autocomplete="off" id="txtOtp">
+                            @* <button class="btn btn-success btn-success-my px-5 w-100 fs-5 white-color-my" type="button" onclick="ConfirmPayment()" id="btnConfirm">Aceptar pago</button> *@
+                        </div>
+                    </div>
+                    <input type="hidden" id="hiddenOrderId" name="custId" value="">
+                    <button class="btn btn-success btn-success-my px-5 w-100 fs-5 white-color-my" type="button" onclick="ConfirmOtp()" id="btnConfirm">Confirmar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+}
+
+@if (ViewBag.cardError != null && ViewBag.cardError == "SHOW")
+{
+    <div class="container" style="display: flex; justify-content: center; align-items: center; height: 100vh">
+        <div style="width:100%;text-align: center;">
+            <div style="color: #D8000C;background-color: #FFBABA;border-radius: 10px;filter: drop-shadow(3px 3px 3px rgba(0, 0, 0, 0.6));">
+                <p style="font-size: 16px;"><b>Ocurri&oacute; un error al procesar el d&eacute;bito.</b></p>
+            </div>
+            <div style="width:100%;text-align: center;">
+                <img src="@ViewBag.hostUrl/images/app/payment-fail.jpg" height="220" />
+            </div>
+        </div>
+    </div>
+}
+
+
+<div id="paymentFailed" style="display:none;">
+    <div class="container" style="display: flex; justify-content: center; align-items: center; height: 100vh">
+        <div style="width:100%;text-align: center;">
+            <div style="color: #D8000C;background-color: #FFBABA;border-radius: 10px;filter: drop-shadow(3px 3px 3px rgba(0, 0, 0, 0.6));">
+                <p style="font-size: 16px;"><b>D&eacute;bito no fue aprobado.</b></p>
+            </div>
+            <div style="width:100%;text-align: center;">
+                <img src="@ViewBag.hostUrl/images/app/payment-fail.jpg" height="220" />
+            </div>
+            <button class="btn btn-success btn-success-my px-5 w-100 fs-5 white-color-my" type="button" onclick="send_Data(true, 'FAILED','','')">Finalizar</button>
+        </div>
+    </div>
+</div>
+
+<div id="paymentSuccess" style="display:none;">
+    <div class="container" style="display: flex; justify-content: center; align-items: center; height: 100vh">
+        <div style="width:100%;text-align: center;">
+            <div style="color: #4F8A10;background-color: #dff28f;border-radius: 10px;filter: drop-shadow(3px 3px 3px rgba(0, 0, 0, 0.6));height:35px;">
+                <p style="font-size: 16px;"><b>D&eacute;bito procesado con &eacute;xito.</b></p>
+            </div>
+            <div style="width:100%;text-align: center;">
+                <img src="@ViewBag.hostUrl/images/app/payment-success.jpg" height="220" />
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="paymentError" style="display:none;">
+    <div class="container" style="display: flex; justify-content: center; align-items: center; height: 100vh">
+        <div style="width:100%;text-align: center;">
+            <div style="color: #D8000C;background-color: #FFBABA;border-radius: 10px;filter: drop-shadow(3px 3px 3px rgba(0, 0, 0, 0.6));">
+                <p style="font-size: 16px;"><b>Ocurri&oacute; un error al procesar el d&eacute;bito.</b></p>
+            </div>
+            <div style="width:100%;text-align: center;">
+                <img src="@ViewBag.hostUrl/images/app/payment-fail.jpg" height="220" />
+            </div>
+            <button class="btn btn-success btn-success-my px-5 w-100 fs-5 white-color-my" type="button" onclick="send_Data(true, 'ERROR','','')">Finalizar</button>
+        </div>
+    </div>
+</div>
+
+<div id="idLoading">
+    <div id="Background"></div>
+    <div id="Progress" class="h-100 d-flex align-items-center justify-content-center">
+        <div class="row">
+            <div class="container">
+                <div class="col">
+                    <center>
+                        <div class="spinner-border text-success" role="status">
+                            <span class="visually-hidden"></span>
+                        </div>
+                    </center>
+                </div>
+                <div class="col">
+                    <p style="text-align: center; font-weight: bold;">
+                        Procesando su pago, espere por favor...
+                    </p>
+                </div>
+            </div>
+        </div>        
+    </div>
+</div>
+
+@Html.Hidden("RedirectTo", Url.Action("Index", "Challenge"));
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+            <script type="text/javascript">
+
+                var isFlutterInAppWebViewReady = false;
+
+                $(document).ready(function() {
+                    document.getElementById('idLoading').style.visibility = 'visible';
+
+                    window.addEventListener("flutterInAppWebViewPlatformReady", function (event) {
+                        isFlutterInAppWebViewReady = true;
+                        console.log('isFlutterInAppWebViewReady');
+                    });
+
+                    var showLoading = '@ViewBag.showLoading';
+                    if (showLoading == "Y") {
+                        document.getElementById('idLoading').style.visibility = 'visible';
+                    } else {
+                        document.getElementById('idLoading').style.visibility = 'hidden';
+                    }
+                })
+
+                function ConfirmPayment() {
+                    document.getElementById('btnConfirm').style.visibility = 'hidden';
+                    const searchParams = new URLSearchParams(window.location.search);
+                    var parameters = {
+                        tc: searchParams.get('tc'),
+                        ts: searchParams.get('ts'),
+                        ad: searchParams.get('ad')
+                    }
+                    $.ajax({
+                        type: "POST",
+                        url: '@Url.Action("ConfirmPayment", "Home")',
+                        dataType: "json",
+                        cache: false,
+                        data: parameters,
+                        beforeSend: function () {
+                            document.getElementById('idLoading').style.visibility = 'visible';
+                        },
+                        success: function (result) {
+                            const error = result?.error;
+                            const status = result?.resultCode;
+                            const codeStatus = result?.codeStatus;
+                            if(error){
+                                showAlerts(status);
+                            }
+                            else
+                            {
+                                if (codeStatus == 36) {
+                                    console.log('entro al 36');
+                                    var url = $('#RedirectTo').val();
+                                    window.parent.location.href = url + "?order=" + result?.order + "&ts=" + searchParams.get('ts');
+                                }
+                                if (codeStatus == 35) {
+                                    console.log('entro al 35');
+                                    document.getElementById('idLoading').style.visibility = 'visible';
+                                    sleep(6000).then(() => { ContinueProcess(result?.order, ''); });
+                                }
+                                if(codeStatus == 31){
+                                    console.log('entro al 31');
+                                    document.getElementById('hiddenOrderId').value = result?.order;
+                                    document.getElementById('idLoading').style.visibility = 'hidden';
+                                    document.getElementById('otp').style.display = 'block';
+                                }
+                            }
+
+                                                        
+                        }
+                    })
+                }
+
+                function sleep(ms) {
+                    return new Promise(resolve => setTimeout(resolve, ms));
+                }
+
+                function ContinueProcess(orderId, cressId) {
+                    document.getElementById('idLoading').style.visibility = 'visible';
+                    const searchParams = new URLSearchParams(window.location.search);
+                    var parameters = {
+                        tc: '',
+                        ts: searchParams.get('ts'),
+                        ad: '',
+                        order: orderId,
+                        cresId: cressId
+                    }
+                    $.ajax({
+                        type: "POST",
+                        url: '@Url.Action("VerifyTransaction", "Home")',
+                        dataType: "json",
+                        cache: false,
+                        data: parameters,
+                        beforeSend: function () {
+                            document.getElementById('idLoading').style.visibility = 'visible';
+                        },
+                        success: function (result) {
+                            const status = result?.paymentStatus;
+                            const order = result?.orderId;
+                            const secuence = result?.secuence;
+                            showAlerts(status, order, secuence);
+                        }
+                    })
+                }
+
+                function showAlerts(status, order, secuence) {
+                    document.getElementById('card').style.display = "none";
+                    switch (status) {
+                        case 'SUCCESS':
+                            document.getElementById('idLoading').style.visibility = "hidden";
+                            document.getElementById('paymentSuccess').style.display = "";
+                            document.getElementById('paymentFailed').style.display = "none";
+                            document.getElementById('paymentError').style.display = "none";
+                            sleep(3000).then(() => {
+                                document.getElementById('idLoading').style.visibility = 'visible';
+                                send_Data(false, 'SUCCESS', order, secuence);
+                            });
+                            break;
+                        case 'FAILED':
+                            document.getElementById('idLoading').style.visibility = "hidden";
+                            document.getElementById('paymentSuccess').style.display = "none";
+                            document.getElementById('paymentFailed').style.display = "";
+                            document.getElementById('paymentError').style.display = "none";
+                            break;
+                        case 'ERROR':
+                            document.getElementById('idLoading').style.visibility = "hidden";
+                            document.getElementById('paymentSuccess').style.display = "none";
+                            document.getElementById('paymentFailed').style.display = "none";
+                            document.getElementById('paymentError').style.display = "block";
+                            break;
+                    }
+                }
+
+                function ConfirmOtp() {
+                    var otp = document.getElementById('txtOtp').value;
+                    var orderId = document.getElementById('hiddenOrderId').value;
+                    ContinueProcess(orderId, otp);
+                }
+
+                function send_Data(errorExits, paymentStatus, orderId, secuence) {
+                    var parameters = {
+                        error: errorExits,
+                        status: paymentStatus,
+                        order: orderId,
+                        secuence: secuence
+                    }
+
+                    window.flutter_inappwebview.callHandler('handlerFooWithArgs', { error: errorExits, status: paymentStatus, order: orderId, secuence: secuence })
+                        .then(function (result) {
+                            //console.log('result send to app flutter');
+                        });
+                }
+            </script>
+    }
+}
