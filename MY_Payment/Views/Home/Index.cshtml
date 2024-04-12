@@ -123,154 +123,159 @@
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
-            <script type="text/javascript">
+                <script type="text/javascript">
 
-                var isFlutterInAppWebViewReady = false;
+                    var isFlutterInAppWebViewReady = false;
 
-                $(document).ready(function() {
-                    document.getElementById('idLoading').style.visibility = 'visible';
-
-                    window.addEventListener("flutterInAppWebViewPlatformReady", function (event) {
-                        isFlutterInAppWebViewReady = true;
-                        console.log('isFlutterInAppWebViewReady');
-                    });
-
-                    var showLoading = '@ViewBag.showLoading';
-                    if (showLoading == "Y") {
+                    $(document).ready(function() {
                         document.getElementById('idLoading').style.visibility = 'visible';
-                    } else {
-                        document.getElementById('idLoading').style.visibility = 'hidden';
-                    }
-                })
 
-                function ConfirmPayment() {
-                    document.getElementById('btnConfirm').style.visibility = 'hidden';
-                    const searchParams = new URLSearchParams(window.location.search);
-                    var parameters = {
-                        tc: searchParams.get('tc'),
-                        ts: searchParams.get('ts'),
-                        ad: searchParams.get('ad')
-                    }
-                    $.ajax({
-                        type: "POST",
-                        url: '@Url.Action("ConfirmPayment", "Home")',
-                        dataType: "json",
-                        cache: false,
-                        data: parameters,
-                        beforeSend: function () {
-                            document.getElementById('idLoading').style.visibility = 'visible';
-                        },
-                        success: function (result) {
-                            const error = result?.error;
-                            const status = result?.resultCode;
-                            const codeStatus = result?.codeStatus;
-                            if(error){
-                                showAlerts(status);
-                            }
-                            else
-                            {
-                                if (codeStatus == 36) {
-                                    console.log('entro al 36');
-                                    var url = $('#RedirectTo').val();
-                                    window.parent.location.href = url + "?order=" + result?.order + "&ts=" + searchParams.get('ts');
-                                }
-                                if (codeStatus == 35) {
-                                    console.log('entro al 35');
-                                    document.getElementById('idLoading').style.visibility = 'visible';
-                                    sleep(6000).then(() => { ContinueProcess(result?.order, ''); });
-                                }
-                                if(codeStatus == 31){
-                                    console.log('entro al 31');
-                                    document.getElementById('hiddenOrderId').value = result?.order;
-                                    document.getElementById('idLoading').style.visibility = 'hidden';
-                                    document.getElementById('otp').style.display = 'block';
-                                }
-                            }
-
-                                                        
-                        }
-                    })
-                }
-
-                function sleep(ms) {
-                    return new Promise(resolve => setTimeout(resolve, ms));
-                }
-
-                function ContinueProcess(orderId, cressId) {
-                    document.getElementById('idLoading').style.visibility = 'visible';
-                    const searchParams = new URLSearchParams(window.location.search);
-                    var parameters = {
-                        tc: '',
-                        ts: searchParams.get('ts'),
-                        ad: '',
-                        order: orderId,
-                        cresId: cressId
-                    }
-                    $.ajax({
-                        type: "POST",
-                        url: '@Url.Action("VerifyTransaction", "Home")',
-                        dataType: "json",
-                        cache: false,
-                        data: parameters,
-                        beforeSend: function () {
-                            document.getElementById('idLoading').style.visibility = 'visible';
-                        },
-                        success: function (result) {
-                            const status = result?.paymentStatus;
-                            const order = result?.orderId;
-                            const secuence = result?.secuence;
-                            showAlerts(status, order, secuence);
-                        }
-                    })
-                }
-
-                function showAlerts(status, order, secuence) {
-                    document.getElementById('card').style.display = "none";
-                    switch (status) {
-                        case 'SUCCESS':
-                            document.getElementById('idLoading').style.visibility = "hidden";
-                            document.getElementById('paymentSuccess').style.display = "";
-                            document.getElementById('paymentFailed').style.display = "none";
-                            document.getElementById('paymentError').style.display = "none";
-                            sleep(3000).then(() => {
-                                document.getElementById('idLoading').style.visibility = 'visible';
-                                send_Data(false, 'SUCCESS', order, secuence);
-                            });
-                            break;
-                        case 'FAILED':
-                            document.getElementById('idLoading').style.visibility = "hidden";
-                            document.getElementById('paymentSuccess').style.display = "none";
-                            document.getElementById('paymentFailed').style.display = "";
-                            document.getElementById('paymentError').style.display = "none";
-                            break;
-                        case 'ERROR':
-                            document.getElementById('idLoading').style.visibility = "hidden";
-                            document.getElementById('paymentSuccess').style.display = "none";
-                            document.getElementById('paymentFailed').style.display = "none";
-                            document.getElementById('paymentError').style.display = "block";
-                            break;
-                    }
-                }
-
-                function ConfirmOtp() {
-                    var otp = document.getElementById('txtOtp').value;
-                    var orderId = document.getElementById('hiddenOrderId').value;
-                    ContinueProcess(orderId, otp);
-                }
-
-                function send_Data(errorExits, paymentStatus, orderId, secuence) {
-                    var parameters = {
-                        error: errorExits,
-                        status: paymentStatus,
-                        order: orderId,
-                        secuence: secuence
-                    }
-
-                    window.flutter_inappwebview.callHandler('handlerFooWithArgs', { error: errorExits, status: paymentStatus, order: orderId, secuence: secuence })
-                        .then(function (result) {
-                            //console.log('result send to app flutter');
+                        window.addEventListener("flutterInAppWebViewPlatformReady", function (event) {
+                            isFlutterInAppWebViewReady = true;
+                            console.log('isFlutterInAppWebViewReady');
                         });
-                }
-            </script>
+
+                        var showLoading = '@ViewBag.showLoading';
+                        if (showLoading == "Y") {
+                            document.getElementById('idLoading').style.visibility = 'visible';
+                        } else {
+                            document.getElementById('idLoading').style.visibility = 'hidden';
+                        }
+                    })
+
+                    function ConfirmPayment() {
+                        document.getElementById('btnConfirm').style.visibility = 'hidden';
+                        const searchParams = new URLSearchParams(window.location.search);
+                        var parameters = {
+                            tc: searchParams.get('tc'),
+                            ts: searchParams.get('ts'),
+                            ad: searchParams.get('ad')
+                        }
+                        $.ajax({
+                            type: "POST",
+                            url: '@Url.Action("ConfirmPayment", "Home")',
+                            dataType: "json",
+                            cache: false,
+                            data: parameters,
+                            beforeSend: function () {
+                                document.getElementById('idLoading').style.visibility = 'visible';
+                            },
+                            success: function (result) {
+                                const error = result?.error;
+                                const status = result?.resultCode;
+                                const codeStatus = result?.codeStatus;
+                                if(error){
+                                    showAlerts(status);
+                                }
+                                else
+                                {
+                                    if (codeStatus == 36) {
+                                        console.log('entro al 36');
+                                        var url = $('#RedirectTo').val();
+                                        window.parent.location.href = url + "?order=" + result?.order + "&ts=" + searchParams.get('ts');
+                                    }
+                                    if (codeStatus == 35) {
+                                        console.log('entro al 35');
+                                        document.getElementById('idLoading').style.visibility = 'visible';
+                                        sleep(6000).then(() => { ContinueProcess(result?.order, ''); });
+                                    }
+                                    if(codeStatus == 31){
+                                        console.log('entro al 31');
+                                        document.getElementById('hiddenOrderId').value = result?.order;
+                                        document.getElementById('idLoading').style.visibility = 'hidden';
+                                        document.getElementById('otp').style.display = 'block';
+                                    }
+                                    if (codeStatus == 3){
+                                        console.log('entro al 3');
+                                        document.getElementById('idLoading').style.visibility = 'hidden';
+                                        showAlerts(status,result?.order,result?.secuence);
+                                    }
+                                }
+
+                                                            
+                            }
+                        })
+                    }
+
+                    function sleep(ms) {
+                        return new Promise(resolve => setTimeout(resolve, ms));
+                    }
+
+                    function ContinueProcess(orderId, cressId) {
+                        document.getElementById('idLoading').style.visibility = 'visible';
+                        const searchParams = new URLSearchParams(window.location.search);
+                        var parameters = {
+                            tc: '',
+                            ts: searchParams.get('ts'),
+                            ad: '',
+                            order: orderId,
+                            cresId: cressId
+                        }
+                        $.ajax({
+                            type: "POST",
+                            url: '@Url.Action("VerifyTransaction", "Home")',
+                            dataType: "json",
+                            cache: false,
+                            data: parameters,
+                            beforeSend: function () {
+                                document.getElementById('idLoading').style.visibility = 'visible';
+                            },
+                            success: function (result) {
+                                const status = result?.paymentStatus;
+                                const order = result?.orderId;
+                                const secuence = result?.secuence;
+                                showAlerts(status, order, secuence);
+                            }
+                        })
+                    }
+
+                    function showAlerts(status, order, secuence) {
+                        document.getElementById('card').style.display = "none";
+                        switch (status) {
+                            case 'SUCCESS':
+                                document.getElementById('idLoading').style.visibility = "hidden";
+                                document.getElementById('paymentSuccess').style.display = "";
+                                document.getElementById('paymentFailed').style.display = "none";
+                                document.getElementById('paymentError').style.display = "none";
+                                sleep(3000).then(() => {
+                                    document.getElementById('idLoading').style.visibility = 'visible';
+                                    send_Data(false, 'SUCCESS', order, secuence);
+                                });
+                                break;
+                            case 'FAILED':
+                                document.getElementById('idLoading').style.visibility = "hidden";
+                                document.getElementById('paymentSuccess').style.display = "none";
+                                document.getElementById('paymentFailed').style.display = "";
+                                document.getElementById('paymentError').style.display = "none";
+                                break;
+                            case 'ERROR':
+                                document.getElementById('idLoading').style.visibility = "hidden";
+                                document.getElementById('paymentSuccess').style.display = "none";
+                                document.getElementById('paymentFailed').style.display = "none";
+                                document.getElementById('paymentError').style.display = "block";
+                                break;
+                        }
+                    }
+
+                    function ConfirmOtp() {
+                        var otp = document.getElementById('txtOtp').value;
+                        var orderId = document.getElementById('hiddenOrderId').value;
+                        ContinueProcess(orderId, otp);
+                    }
+
+                    function send_Data(errorExits, paymentStatus, orderId, secuence) {
+                        var parameters = {
+                            error: errorExits,
+                            status: paymentStatus,
+                            order: orderId,
+                            secuence: secuence
+                        }
+
+                        window.flutter_inappwebview.callHandler('handlerFooWithArgs', { error: errorExits, status: paymentStatus, order: orderId, secuence: secuence })
+                            .then(function (result) {
+                                //console.log('result send to app flutter');
+                            });
+                    }
+                </script>
     }
 }

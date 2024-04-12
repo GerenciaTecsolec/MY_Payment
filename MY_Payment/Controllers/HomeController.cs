@@ -119,7 +119,8 @@ namespace MY_Payment.Controllers
                     result!.codeStatus,
                     result!.iframe,
                     result!.order,
-                    result!.transactionId
+                    result!.transactionId,
+                    result!.secuence
                 });
             }
             catch(Exception error)

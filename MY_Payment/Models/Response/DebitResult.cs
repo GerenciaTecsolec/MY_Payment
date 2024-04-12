@@ -8,5 +8,6 @@
         public string? iframe { get; set; }
         public string? order { get; set; }
         public string? transactionId { get; set; }
+        public string? secuence { get; set; }
     }
 }

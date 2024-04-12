@@ -317,6 +317,29 @@ namespace MY_Payment.Service
                                     order = order!.Order!.Id!.ToString()!
                                 };
                             }
+                            if (statusDetail == 3)
+                            {
+                                string emailContent = DebitNotificationEmail(result!.Transaction!.Id.ToString()!, result!.Transaction!.AuthorizationCode!, "Pago de la orden N° " + currentOrder.secuence + ".", currentOrder.total);
+                                EmailRequest emailRequest = new EmailRequest()
+                                {
+                                    sendTo = currentClient!.email!,
+                                    copyTo = "",
+                                    content = emailContent,
+                                    subject = "Autorizacion de Compra MercadoYa - Paymentez"
+                                };
+                                await SendEmail(emailRequest);
+                                await ConfirmPaymentOrder(currentOrder.id.ToString(), tokenSession);
+                                clientService.CreateInvoice(tokenSession, tokenApp, currentOrder.id.ToString());
+                                debit = new DebitResult()
+                                {
+                                    error = false,
+                                    codeStatus = statusDetail!.ToString(),
+                                    transactionId = result!.Transaction!.Id!.ToString()!,
+                                    order = currentOrder.id.ToString(),
+                                    resultCode = "SUCCESS",
+                                    secuence = currentOrder.secuence
+                                };
+                            }
                         }
                         return debit;
                     }
