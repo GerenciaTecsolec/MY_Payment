@@ -101,9 +101,6 @@
                         var appCode = '@ViewBag.appCode';
                         var appKey = '@ViewBag.appKey';
                         var enviroment = '@ViewBag.enviroment';
-                        //console.log('enviroment:', enviroment);
-                        //console.log('appCode:', appCode);
-                        //console.log('appKey:', appKey);
                         Payment.init(enviroment, appCode, appKey);
 
                         let form = $("#add-card-form");
@@ -114,15 +111,21 @@
                             let myCard = $('#my-card');
                             let cardToSave = myCard.PaymentForm('card');
                             if (cardToSave == null) {
-                                window.flutter_inappwebview.callHandler("return_data", {
-                                    status: "invalid_card",
+                                confirm_Data({
+                                    status: "invalid card",
                                     token: "",
                                     reference: "",
-                                    message: "invalid_card"
-                                })
-                                .then(function (result) {
-                                    console.log('result invalid card');
+                                    message: ""
                                 });
+                                // window.flutter_inappwebview.callHandler("return_data", {
+                                //     status: "invalid_card",
+                                //     token: "",
+                                //     reference: "",
+                                //     message: "invalid_card"
+                                // })
+                                // .then(function (result) {
+                                //     console.log('result invalid card');
+                                // });
                             } else {
                                 submitButton.attr("disabled", "disabled").text("Procesando tu tarjeta...");
                                 var uid = '@ViewBag.uid';
@@ -134,8 +137,6 @@
 
 
                         let successHandler = function (cardResponse) {
-                            console.log('EXITO');
-                            console.log(cardResponse.card);
                             if (cardResponse.card.status === 'valid') {
                                 console.log('valid');
                                 confirm_Data({
@@ -185,7 +186,7 @@
                 }
 
                 function confirm_Data(data) {
-                    console.log('datos', data);
+                    //console.log('datos', data);
                     window.flutter_inappwebview.callHandler('returnData', {
                         status: data.status,
                         token: data.token,

@@ -12,16 +12,6 @@ html {
   box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
-/*html {
-  position: relative;
-  min-height: 100%;
-}
-
-body {
-    margin-bottom: 60px;
-    height: 100%;
-}*/
-
 html,
 body {
     height: 100%;
@@ -112,16 +102,6 @@ body {
     --masterFont: "Raleway", sans-serif;
 }
 
-body {
-    /*--baseColor: #c2e59c;*/
-   /* overflow: hidden;
-    margin: 0;
-    padding: 0;*/
-    /*background-color: #F6F6F6 !important;*/
-    /* background: var(--baseColor);
-        background: linear-gradient(to right, #64b3f4, var(--baseColor)); */
-}
-
 .credit {
     --heightCalc: - calc((var(--height) / 2) - 10px);
     --widthCalc: calc(var(--width) / 2);
@@ -143,19 +123,19 @@ body {
     margin: 0;
 }
 
-    .credit__figure::after {
-        content: "Mercado Ya";
-        font-size: 0.55em;
-        letter-spacing: 4px;
-        color: var(--white);
-        position: absolute;
-        width: 100%;
-        text-align: center;
-        bottom: calc(-100% - 15px);
-    }
+.credit__figure::after {
+    content: "Mercado Ya";
+    font-size: 0.55em;
+    letter-spacing: 4px;
+    color: var(--white);
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    bottom: calc(-100% - 15px);
+}
 
 .credit__figure--logo {
-    --widthLogo: 130px;
+    --widthLogo: 90px;
     width: var(--widthLogo);
     position: absolute;
     right: 50%;
