@@ -513,7 +513,9 @@ namespace MY_Payment.Service
                         if (result!.Transaction!.StatusDetail == 3)
                         {
                             //Aqui se envia email de la confirmacion del debito y la confirmacionde la orden al chef
-                            string emailContent = DebitNotificationEmail(orderTransaction!.nuveiTransactionId!, result!.Transaction!.AuthorizationCode!, "Pago de la orden N° " + order!.secuence! + ".", (order!.amount + order!.deliveryFee));
+                            string percentageServiceTax = configuration.GetValue<string>("globalVariables:service") ?? "0";
+                            decimal serviceTax = (order!.amount + order!.deliveryFee) * (Convert.ToDecimal(percentageServiceTax) / (decimal)100);
+                            string emailContent = DebitNotificationEmail(orderTransaction!.nuveiTransactionId!, result!.Transaction!.AuthorizationCode!, "Pago de la orden N° " + order!.secuence! + ".", Math.Round((order!.amount + order!.deliveryFee + serviceTax),2));
                             EmailRequest emailRequest = new EmailRequest()
                             {
                                 sendTo = currentClient!.email!,

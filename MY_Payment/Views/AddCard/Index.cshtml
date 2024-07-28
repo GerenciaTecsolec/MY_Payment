@@ -95,7 +95,6 @@
 
                         window.addEventListener("flutterInAppWebViewPlatformReady", function (event) {
                             isFlutterInAppWebViewReady = true;
-                            console.log('isFlutterInAppWebViewReady');
                         });
 
                         var appCode = '@ViewBag.appCode';
@@ -117,15 +116,6 @@
                                     reference: "",
                                     message: ""
                                 });
-                                // window.flutter_inappwebview.callHandler("return_data", {
-                                //     status: "invalid_card",
-                                //     token: "",
-                                //     reference: "",
-                                //     message: "invalid_card"
-                                // })
-                                // .then(function (result) {
-                                //     console.log('result invalid card');
-                                // });
                             } else {
                                 submitButton.attr("disabled", "disabled").text("Procesando tu tarjeta...");
                                 var uid = '@ViewBag.uid';
