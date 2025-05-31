@@ -88,105 +88,106 @@
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
-                <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
-                <script src="https://cdn.paymentez.com/ccapi/sdk/payment_stable.min.js" charset="UTF-8"></script>
-                <script>
-                    $(function () {
+        <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+        <script src="https://cdn.paymentez.com/ccapi/sdk/payment_stable.min.js" charset="UTF-8"></script>
+        <script type="text/javascript">
+            $(function () {
 
-                        window.addEventListener("flutterInAppWebViewPlatformReady", function (event) {
-                            isFlutterInAppWebViewReady = true;
-                        });
+                var appCode = '@ViewBag.appCode';
+                var appKey = '@ViewBag.appKey';
+                var enviroment = '@ViewBag.enviroment';
+                var hostAppLink = '@ViewBag.hostAppLink';
 
-                        var appCode = '@ViewBag.appCode';
-                        var appKey = '@ViewBag.appKey';
-                        var enviroment = '@ViewBag.enviroment';
-                        Payment.init(enviroment, appCode, appKey);
+                Payment.init(enviroment, appCode, appKey);
 
-                        let form = $("#add-card-form");
-                        let submitButton = form.find("button");
-                        let submitInitialText = submitButton.text();
+                let form = $("#add-card-form");
+                let submitButton = form.find("button");
+                let submitInitialText = submitButton.text();
 
-                        $("#add-card-form").submit(function (e) {
-                            let myCard = $('#my-card');
-                            let cardToSave = myCard.PaymentForm('card');
-                            if (cardToSave == null) {
-                                confirm_Data({
-                                    status: "invalid card",
-                                    token: "",
-                                    reference: "",
-                                    message: ""
-                                });
-                            } else {
-                                submitButton.attr("disabled", "disabled").text("Procesando tu tarjeta...");
-                                var uid = '@ViewBag.uid';
-                                var email = '@ViewBag.email';
-                                Payment.addCard(uid, email, cardToSave, successHandler, errorHandler, myCard);
-                            }
-                            e.preventDefault();
-                        });
+                $("#add-card-form").submit(function (e) {
+                    let myCard = $('#my-card');
+                    let cardToSave = myCard.PaymentForm('card');
+                    if (cardToSave == null) {
+                        var result = {
+                            status: "invalid card",
+                            token: "",
+                            reference: "",
+                            message: "Error to add card."
+                        }
+                        console.log('result', result);
+                        window.parent.postMessage(result, hostAppLink);
+                    } else {
+                        submitButton.attr("disabled", "disabled").text("Procesando tu tarjeta...");
+                        var uid = '@ViewBag.uid';
+                        var email = '@ViewBag.email';
+                        Payment.addCard(uid, email, cardToSave, successHandler, errorHandler, myCard);
+                    }
+                    e.preventDefault();
+                });
 
 
-                        let successHandler = function (cardResponse) {
-                            if (cardResponse.card.status === 'valid') {
-                                console.log('valid');
-                                confirm_Data({
-                                    status: "success",
-                                    token: cardResponse?.card?.token,
-                                    reference: cardResponse?.card?.transaction_reference,
-                                    message: "the card entered has been correctly validated and added."
-                                });
-                            } else if (cardResponse.card.status === 'review') {
-                                console.log('review');
-                                confirm_Data({
-                                    status: "review",
-                                    token: cardResponse?.card?.token,
-                                    reference: cardResponse?.card.transaction_reference,
-                                    message: "the card entered is in review status"
-                                });
-                            } else {
-                                console.log('no indicado');
-                                confirm_Data({
-                                    status: cardResponse?.card?.status,
-                                    token: "",
-                                    reference: "",
-                                    message: cardResponse?.card?.message
-                                });
-                            }
-                            submitButton.removeAttr("disabled");
-                            submitButton.text(submitInitialText);
-                        };
+                let successHandler = function (cardResponse) {
+                    let result = {};
+                    if (cardResponse.card.status === 'valid') {
+                        console.log('valid');
+                        result =  {
+                            status: "success",
+                            token: cardResponse?.card?.token,
+                            reference: cardResponse?.card?.transaction_reference,
+                            message: "the card entered has been correctly validated and added."
+                        }
+                    } else if (cardResponse.card.status === 'review') {
+                        console.log('review');
+                        result = {
+                            status: cardResponse?.card?.status,
+                            token: "",
+                            reference: "",
+                            message: cardResponse?.card?.message
+                        }
+                    } else {
+                        console.log('invalid');
+                        result = {
+                            status: cardResponse?.card?.status,
+                            token: "",
+                            reference: "",
+                            message: cardResponse?.card?.message
+                        }
+                    }
+                    submitButton.removeAttr("disabled");
+                    submitButton.text(submitInitialText);
+                    console.log('result', result);
+                    window.parent.postMessage(result, hostAppLink);
+                };
 
-                        let errorHandler = function (err) {
-                            console.log("ERROR");
-                            console.log(err);
-                            confirm_Data({
-                                status: "error",
-                                token: "",
-                                reference: "",
-                                message: "When using the paymentez service an error occurred"
-                            });
-                            submitButton.removeAttr("disabled");
-                            submitButton.text(submitInitialText);
-                        };
+                let errorHandler = function (error) {
+                    console.log("ERROR", error);
+                    const errorResult = {
+                        status: "error",
+                        token: "",
+                        reference: "",
+                        message: "When using the paymentez service an error occurred"
+                    }
+                    submitButton.removeAttr("disabled");
+                    submitButton.text(submitInitialText);
+                    console.log('result', errorResult);
+                    window.parent.postMessage(errorResult, hostAppLink);
+                };
 
-                    });
+            });
 
-                function sleep(ms) {
-                    return new Promise(resolve => setTimeout(resolve, ms));
-                }
 
-                function confirm_Data(data) {
-                    //console.log('datos', data);
-                    window.flutter_inappwebview.callHandler('returnData', {
-                        status: data.status,
-                        token: data.token,
-                        reference: data.reference,
-                        message: data.message
-                    })
-                    .then(function (result) {
-                        console.log('result send to app flutter');
-                    });
-                }
-            </script>
+            function confirm_Data(data) {
+
+                const result = {
+                    status: data.status,
+                    token: data.token,
+                    reference: data.reference,
+                    message: data.message
+                };
+
+                console.log('result', result);
+                window.parent.postMessage(result, hostAppLink);
+            }
+        </script>
     }
 }

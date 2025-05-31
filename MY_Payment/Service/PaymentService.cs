@@ -181,7 +181,7 @@ namespace MY_Payment.Service
         public async Task<DebitResult?> GenerateDebit(string tokenCard, string tokenSession, BrowserInfo browserInfo, string clientAddressId, string tokenApp, string sessionId)
         {
             string url = "";
-             DebitResult debit = new DebitResult();
+            DebitResult debit = new DebitResult();
             ServicePointManager.ServerCertificateValidationCallback += (sender, certificate, chain, sslPolicyErrors) => true;
             System.Net.ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             using (var client = new HttpClient())
@@ -570,14 +570,16 @@ namespace MY_Payment.Service
 
         public string DebitNotificationEmail(string idTransaction, string authorizationCode, string detail, decimal amount)
         {
+            string hostUrlAdmin = configuration.GetValue<string>("globalVariables:hostUrlAdmin")!;
+
             string content = String.Format(@"<div style=""display:grid;width:600px;margin:0px auto;border:3px solid #d1d1d1;border-radius: 20px;background-color: #FFFFFF;"">
-                                                <div style=""background-color: #1aa182 !important;border-top-right-radius: 17px;border-top-left-radius: 17px;width:100%"">
-                                                    <img src=""https://www.tecsolec.com/chef/images/background/background-dos.png"" height=""100"" style=""margin: 0px 30%;""/>
+                                                <div style=""background-color: #1aa182 !important;display: flex; justify-content: center; align-items: center;padding: 20px;"">
+                                                    <img src=""{5}/images/background/background-dos.png"" height=""90""/>
                                                 </div>
                                                 <p style=""text-indent: 0pt;line-height: 0pt;text-align: center;"">
                                                   <span
                                                     style=""color: black; font-family:Verdana, sans-serif; font-style: normal; font-weight: 600; text-decoration: none; font-size: 12pt;"">
-                                                    AUTORIZACION DE COMPRA
+                                                    AUTORIZAC&Oacute;N DE COMPRA
                                                   </span>
                                                 </p>
                                                 <div style=""background-color: #19a182;width: 400px; height:62px;margin-bottom: 24px;margin-top: 24px;margin-left:100px;"">
@@ -670,7 +672,7 @@ namespace MY_Payment.Service
                                                     </div>
                                                   </div>
                                                 </div>
-                                              </div>", idTransaction, authorizationCode, amount.ToString(), detail, DateTime.UtcNow.ToLongDateString() + " " + DateTime.UtcNow.ToShortTimeString());
+                                              </div>", idTransaction, authorizationCode, amount.ToString(), detail, DateTime.UtcNow.ToLongDateString() + " " + DateTime.UtcNow.ToShortTimeString(), hostUrlAdmin);
             return content;
         }
 

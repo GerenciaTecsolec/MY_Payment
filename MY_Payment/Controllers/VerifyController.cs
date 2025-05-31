@@ -25,7 +25,9 @@ namespace MY_Payment.Controllers
             try
             {
                 string hostUrl = configuration.GetValue<string>("globalVariables:hostUrlAdmin")!;
+                string hostAppLink = configuration.GetValue<string>("globalVariables:hostAppLink")!;
                 ViewBag.hostUrl = hostUrl;
+                ViewBag.hostAppLink =  hostAppLink;
                 var queryString = HttpContext.Request.QueryString!.ToString();
                 if (!string.IsNullOrEmpty(queryString))
                 {
