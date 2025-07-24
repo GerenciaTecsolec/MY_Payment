@@ -7,25 +7,25 @@ namespace MY_Payment.Controllers
 {
     public class VerifyController : Controller
     {
-        AuthService authService;
-        ClientService clientService;
-        private IConfiguration configuration;
-        PaymentService paymentService;
+        private readonly AuthService _authService;
+        private readonly ClientService _clientService;
+        private readonly IConfiguration _configuration;
+        private readonly PaymentService _paymentService;
 
-        public VerifyController(IConfiguration _configuration)
+        public VerifyController(IConfiguration configuration, AuthService authService, PaymentService paymentService, ClientService clientService)
         {
-            this.configuration = _configuration;
-            paymentService = new PaymentService(configuration);
-            clientService = new ClientService(configuration);
-            authService = new AuthService(configuration);
+            _configuration = configuration;
+            _paymentService = paymentService;
+            _clientService = clientService;
+            _authService = authService;
         }
 
         public async Task<IActionResult> Index()
         {
             try
             {
-                string hostUrl = configuration.GetValue<string>("globalVariables:hostUrlAdmin")!;
-                string hostAppLink = configuration.GetValue<string>("globalVariables:hostAppLink")!;
+                string hostUrl = _configuration.GetValue<string>("globalVariables:hostUrlAdmin")!;
+                string hostAppLink = _configuration.GetValue<string>("globalVariables:hostAppLink")!;
                 ViewBag.hostUrl = hostUrl;
                 ViewBag.hostAppLink =  hostAppLink;
                 var queryString = HttpContext.Request.QueryString!.ToString();
@@ -35,12 +35,12 @@ namespace MY_Payment.Controllers
                     string orderId = HttpContext.Request.Query["order"].ToString();
                     string cresId = HttpContext.Request.Query["cres"].ToString();
                     string secuence = HttpContext.Request.Query["sec"].ToString();
-                    string tokenApp = await authService.GenerateTokenApplication();
-                    string tokenSession = await authService.GetCurrentTokenSession(sessionId, tokenApp);
-                    Client? client = await clientService.GetClientInfo(tokenSession, tokenApp);
+                    string tokenApp = await _authService.GenerateTokenApplication();
+                    string tokenSession = await _authService.GetCurrentTokenSession(sessionId, tokenApp);
+                    Client? client = await _clientService.GetClientInfo(tokenSession, tokenApp);
                     if (client != null)
                     {
-                        string result = await paymentService.VerifyTransaction(tokenSession, tokenApp, orderId, cresId ?? "", client);
+                        string result = await _paymentService.VerifyTransaction(tokenSession, tokenApp, orderId, cresId ?? "", client);
                         ViewBag.statusPayment = result;
                         ViewBag.showLoading = 'N';
                         ViewBag.orderId = orderId;

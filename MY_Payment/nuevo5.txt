@@ -1,0 +1,127 @@
+https://tecsolec.com/api-chef-dev/api/Security/get-token
+https://tecsolec.com/api-chef-dev/api/Security/login
+https://tecsolec.com/api-chef-dev/api/Security/login
+https://tecsolec.com/api-chef-dev/api/Security/dev/send-otp
+https://tecsolec.com/api-chef-dev/api/Security/dev/validate-otp
+
+https://tecsolec.com/api-chef-dev/api/Chef/id
+https://tecsolec.com/api-chef-dev/api/Dish/client
+
+https://tecsolec.com/api-chef-dev/api/Client/phone
+https://tecsolec.com/api-chef-dev/api/Client/address
+https://tecsolec.com/api-chef-dev/api/Client
+
+https://tecsolec.com/api-chef-dev/api/ShoppingCart
+https://tecsolec.com/api-chef-dev/api/ShoppingCart/client
+
+
+https://tecsolec.com/api-chef-dev/api/Payment/resume
+https://tecsolec.com/api-chef-dev/api/Payment/cards --> revisado
+
+APIs del proceso de pago
+Payment/confirm
+luego del debito, hace: payment/debit-status/order/<orderId>
+
+
+https://tecsolec.com/payment-qa?tc=3368883621568937982&ad=d6b7bec8-657f-4c60-9dcb-6a81d5455ebd&ts=e575c05f-f7b5-478c-80af-fa86280a64ab
+
+https://tecsolec.com/payment-qa?tc=3368883621568937982&ad=d6b7bec8-657f-4c60-9dcb-6a81d5455ebd&ts=40811607-24b0-4cde-82a9-5e42ba38f8a1
+
+
+Estados de las ordenes
+ORDER_STARTED => inicio dela orden
+ORDER_PAID => ordenes pagadas
+ORDER_PREPARING => en preparacion
+ORDER_PREPARED => preparada
+READY_FOR_PICKUP => pending => pedido listo para ser enviado
+PICKUP_ASSIGNED => pickup (false) => mensajero esta asignado y se dirige al punto de recogida
+PICKUP_ARRIVING => pickup (true) => mensajero esta a un minuto del punto de recogida
+PICKUP_COMPLETE => pickup_complete => mensajero ha reogido el pedido
+DROPOFF_IN_ROUTE => dropoff (false) => mensajero se dirige hacia el punto de entrega
+DROPOFF_ARRIVING => dropoff (true) mensajero esta a un minuto del punto de recogida
+DELIVERY_COMPLETED => delivered => mensajero ha completado la entrega
+
+
+export enum DeliveryStatus {
+  READY_FOR_PICKUP = 'READY_FOR_PICKUP',
+  
+  PICKUP_ASSIGNED = 'ACCEPTED',
+  PICKUP_ARRIVING = 'ARRIVED_AT_PICKUP',
+  PICKUP_COMPLETE = 'PICKUP_COMPLETE',
+
+  DROPOFF_EN_ROUTE = 'WAY_TO_DELIVER',
+  DROPOFF_ARRIVING = 'ARRIVED_AT_DELIVERY',
+  DELIVERY_COMPLETE = 'COMPLETED'
+}
+
+export enum DeliveryStatus {
+  PENDING = 'READY_FOR_PICKUP',
+  PICKUP_FALSE = 'PICKUP_ASSIGNED'
+  PICKUP_TRUE = 'PICKUP_ARRIVING'
+  PICKUP_COMPLETE = 'PICKUP_COMPLETE'
+  DROPOFF_FALSE = 'DROPOFF_ON_ROUTE'
+  DROPOFF_TRUE = 'DROPOFF_ARRIVING'
+  DELIVERED = 'PICKUP_COMPLETE',
+}
+
+https://tecsolec.com/api-my-qa/api/delivery/webhook/update-delivery
+https://tecsolec.com/api-my-qa/api/delivery/webhook/update-delivery
+
+pedido 21
+del_97qwDwg3Tj-dxk4I-Cj_mw
+
+
+--------------------------------------------------------------------------------------------------
+Eliminar todos los registros de la BD
+--------------------------------------------------------------------------------------------------
+
+--delete from "User" u where u.id <> '23995f1a-0be3-4f9e-88c7-579248ecc79d'
+--delete from "UserProfile" u where u."userId" <> '23995f1a-0be3-4f9e-88c7-579248ecc79d'
+--delete from "Store" s 
+--delete from "StoreAddress" 
+--delete from "ShoppingCart" 
+--delete from "ShoppingCartDetail"
+--delete from "Session" 
+--delete from "Otp" 
+--delete from "OrderStatus" 
+--delete from "Order"
+--delete from "OrderDetail" 
+--delete from "Logs"
+--delete from "LogsPayment" 
+--delete from "Dish"
+--delete from "DishCategory" 
+--delete from "DishStock" 
+--delete from "Client" 
+--delete from "ClientAddress" 
+--delete from "Chef"
+--delete from "ChefStore"
+--delete from "Address"  
+
+Asignar los permisos de edicion a la carpete Images
+
+
+Se debe poner el valor del Iva por default
+No se muestra la imagen de que no hay logo del negocio
+El negocio, no se ubica el marcador en la locacion correcta
+No se muestra la fecha de nacimiento del chef, la que ingrese en el registro
+
+En la lista de los chefs, se ven undefined cunado no se pone apellido materno
+En caso de no existior la zona cerca a la direccion, esta se guarda sin zona
+
+https://tecsolec.com/my-admin-qa/images/flag/ecuador.png
+
+// const lastUpdateTimeDiffInMinutes = checkIfCloseToCutOffTime(currentTime, cutOffTime, timezone);
+      // console.info(`difference in minutes last update: ${diffInMinutes}`);
+
+      const processTimeDiffInMinutes = checkIfCloseToCutOffTime(processTime, cutOffTime, timezone);
+      console.info(`difference in minutes last update: ${diffInMinutes}`);
+
+      // const lastUpdateTimeIsNearCutOffTime = lastUpdateTimeDiffInMinutes < 0
+      //   ? true
+      //   : lastUpdateTimeDiffInMinutes <= Number(confirmationMarginTime);
+
+      // const processTimeIsNearCutOffTime = processTimeDiffInMinutes < 0
+      //   ? true
+      //   : processTimeDiffInMinutes <= Number(confirmationMarginTime);
+
+      // const shouldConfirmaOrder = lastUpdateTimeIsNearCutOffTime || processTimeIsNearCutOffTime;

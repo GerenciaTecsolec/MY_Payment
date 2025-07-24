@@ -10,35 +10,41 @@ namespace MY_Payment.Controllers
 {
     public class HomeController : Controller
     {
-        AuthService authService;
-        ClientService clientService;
-        private IConfiguration configuration;
-        PaymentService paymentService;
-        CardForm cardForm;
+        private readonly AuthService _authService;
+        private readonly ClientService _clientService;
+        private readonly IConfiguration _configuration;
+        private readonly PaymentService _paymentService;
+        private readonly ILogger<HomeController> _logger;
 
-        public HomeController(IConfiguration _configuration)
+
+        public HomeController(IConfiguration configuration, ILogger<HomeController> logger, AuthService authService, PaymentService paymentService, ClientService clientService)
         {
-            this.configuration = _configuration;
-            paymentService = new PaymentService(configuration);
-            clientService = new ClientService(configuration);
-            authService = new AuthService(configuration);
+            _configuration = configuration;
+            _logger = logger;
+            _paymentService = paymentService;
+            _clientService = clientService;
+            _authService = authService;
         }
 
         public async Task<IActionResult> Index()
         {
             try 
             {
-                string hostUrl = configuration.GetValue<string>("globalVariables:hostUrlAdmin")!;
-                string hostAppLink = configuration.GetValue<string>("globalVariables:hostAppLink")!;
+                _logger.LogInformation("{event}{message}", "HomeController-Index", "Inicio de proceso");
+                string hostUrl = _configuration.GetValue<string>("globalVariables:hostUrlAdmin")!;
+                string hostAppLink = _configuration.GetValue<string>("globalVariables:hostAppLink")!;
                 ViewBag.hostUrl = hostUrl;
                 ViewBag.hostAppLink = hostAppLink;
                 var queryString = HttpContext.Request.QueryString!.ToString();
                 if (!string.IsNullOrEmpty(queryString))
                 {
+                    _logger.LogInformation("{event}{message}{other_data}", "HomeController-Index", "Inicio de proceso", queryString);
+
+                    CardForm cardForm = new CardForm();
                     string sessionId = HttpContext.Request.Query["ts"].ToString();
                     string tokenCard = HttpContext.Request.Query["tc"].ToString();
-                    string tokenApp = await authService.GenerateTokenApplication();
-                    string tokenSession = await authService.GetCurrentTokenSession(sessionId, tokenApp);
+                    string tokenApp = await _authService.GenerateTokenApplication();
+                    string tokenSession = await _authService.GetCurrentTokenSession(sessionId, tokenApp);
                     if (String.IsNullOrEmpty(tokenSession))
                     {
                         ViewBag.showLoading = 'N';
@@ -46,10 +52,10 @@ namespace MY_Payment.Controllers
                         ViewBag.cardError = "SHOW";
                         return View();
                     }
-                    Client? client = await clientService.GetClientInfo(tokenSession, tokenApp);
+                    Client? client = await _clientService.GetClientInfo(tokenSession, tokenApp);
                     if (client != null)
                     {
-                        List<ClientCard> clientCardList = await paymentService.GetClientCards(client.id.ToString(), tokenSession, tokenApp);
+                        List<ClientCard> clientCardList = await _paymentService.GetClientCards(client.id.ToString(), tokenSession, tokenApp);
                         if (clientCardList.Count > 0)
                         {
                             ClientCard card = clientCardList.Find(card => card.token == tokenCard)!;
@@ -59,16 +65,15 @@ namespace MY_Payment.Controllers
                                 cardForm = new CardForm()
                                 {
                                     holderName = client.name.ToUpper() + " " + client.paternalSurname!.ToUpper(),
-                                    number = card.number,
+                                    number = card.number.Replace("*", "&bull;"),
                                     cardBrand = card.cardBrand.brand,
-                                    cardLogo = card.cardBrand.logo
+                                    cardLogo = $"{hostUrl}{card.cardBrand.logo}"
                                 };
                             }
                         }
                     }
                     ViewBag.cardError = "HIDE";
                     ViewBag.card = cardForm;
-
                 }
                 else
                 {
@@ -79,6 +84,7 @@ namespace MY_Payment.Controllers
             }
             catch(Exception error)
             {
+                _logger.LogCritical("{event}{message}{exception}", "HomeController-Index", "Error", error);
                 ViewBag.showLoading = 'N';
                 ViewBag.card = null;
                 ViewBag.cardError = "SHOW";
@@ -111,9 +117,9 @@ namespace MY_Payment.Controllers
                     UserAgent = userAgent,
                     AcceptHeader = "text/xml"
                 };
-                string tokenApp = await authService.GenerateTokenApplication();
-                string tokenSession = await authService.GetCurrentTokenSession(sessionId, tokenApp);
-                DebitResult? result = await paymentService.GenerateDebit(tokenCard, tokenSession, browserInfo, clientAddressId, tokenApp, sessionId)!;
+                string tokenApp = await _authService.GenerateTokenApplication();
+                string tokenSession = await _authService.GetCurrentTokenSession(sessionId, tokenApp);
+                DebitResult? result = await _paymentService.GenerateDebit(tokenCard, tokenSession, browserInfo, clientAddressId, tokenApp, sessionId)!;
                 return Json(new
                 {
                     result!.error,
@@ -127,6 +133,7 @@ namespace MY_Payment.Controllers
             }
             catch(Exception error)
             {
+                _logger.LogCritical("{event}{message}{exception}", "HomeController-ConfirmPayment", "Error", error);
                 return Json(new
                 {
                     error = true,
@@ -141,13 +148,13 @@ namespace MY_Payment.Controllers
             string sessionId = parameters.ts ?? "";
             string orderId = parameters.order!;
             string cresId = parameters!.cresId!;
-            string tokenApp = await authService.GenerateTokenApplication();
-            string tokenSession = await authService.GetCurrentTokenSession(sessionId, tokenApp);
-            Client? client = await clientService.GetClientInfo(tokenSession, tokenApp);
+            string tokenApp = await _authService.GenerateTokenApplication();
+            string tokenSession = await _authService.GetCurrentTokenSession(sessionId, tokenApp);
+            Client? client = await _clientService.GetClientInfo(tokenSession, tokenApp);
             string paymentStatus = "";
             if (client != null)
             {
-                string result = await paymentService.VerifyTransaction(tokenSession, tokenApp, orderId, cresId, client);
+                string result = await _paymentService.VerifyTransaction(tokenSession, tokenApp, orderId, cresId, client);
                 paymentStatus = result;
             }
             ViewBag.showLoading = 'Y';

@@ -233,9 +233,9 @@ body {
     transform: translate(60px, 0px);
 }
 
-    .credit__dates span {
-        filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.3));
-    }
+.credit__dates span {
+    filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.3));
+}
 
 .credit__name {
     font-family: var(--font);
@@ -250,7 +250,7 @@ body {
 
 .credit__flag {
     right: 10px;
-    top: 40%;
+    top: 45%;
     border-radius: 10px;
     transform: translate(0, -28px);
     position: absolute;

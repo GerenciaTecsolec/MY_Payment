@@ -27,13 +27,13 @@
                         <div class="credit__reader--risk credit__reader--risk-three"></div>
                         <div class="credit__reader--risk credit__reader--risk-four"></div>
                     </div>
-                    <p class="credit__number">@ViewBag.card.number</p>
+                    <p class="credit__number">@Html.Raw(ViewBag.card.number)</p>
                     <p class="credit__name">@ViewBag.card.holderName</p>
                     <div class="credit__flag">
                         <img src="@ViewBag.card.cardLogo" class="credit-brand-figure-logo" />
                     </div>
                 </div>
-                <button class="btn btn-success btn-success-my px-5 w-100 fs-5 white-color-my" type="button" onclick="ConfirmPayment()" id="btnConfirm">Aceptar pago</button>
+                <button class="btn btn-success btn-success-my px-5 w-100 fs-5 white-color-my shadow" type="button" onclick="ConfirmPayment()" id="btnConfirm">Aceptar pago</button>
                 <div id="otp" style="display: none;">
                     <div class="row mb-3">
                         <div class="col-md-12 col-lg-12 mt-3">

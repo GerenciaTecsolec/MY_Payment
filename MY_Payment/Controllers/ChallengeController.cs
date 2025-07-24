@@ -9,18 +9,14 @@ namespace MY_Payment.Controllers
     public class ChallengeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        AuthService authService;
-        ClientService clientService;
-        private IConfiguration configuration;
-        PaymentService paymentService;
+        private readonly AuthService _authService;
+        private readonly ClientService _clientService;
 
-        public ChallengeController(ILogger<HomeController> logger, IConfiguration _configuration)
+        public ChallengeController(ILogger<HomeController> logger, AuthService authService, ClientService clientService)
         {
             _logger = logger;
-            this.configuration = _configuration;
-            paymentService = new PaymentService(configuration);
-            clientService = new ClientService(configuration);
-            authService = new AuthService(configuration);
+            _clientService = clientService;
+            _authService = authService;
             ViewBag.showLoading = 'Y';
         }
 
@@ -33,12 +29,12 @@ namespace MY_Payment.Controllers
                 {
                     string sessionId = HttpContext.Request.Query["ts"].ToString();
                     string orderId = HttpContext.Request.Query["order"].ToString();
-                    string tokenApp = await authService.GenerateTokenApplication();
-                    string tokenSession = await authService.GetCurrentTokenSession(sessionId, tokenApp);
-                    Client? client = await clientService.GetClientInfo(tokenSession, tokenApp);
+                    string tokenApp = await _authService.GenerateTokenApplication();
+                    string tokenSession = await _authService.GetCurrentTokenSession(sessionId, tokenApp);
+                    Client? client = await _clientService.GetClientInfo(tokenSession, tokenApp);
                     if (client != null)
                     {
-                        NuveiTransactionFull? orderTransaction = await clientService.GetTransactionByOrderId(tokenSession, tokenApp, orderId)!;
+                        NuveiTransactionFull? orderTransaction = await _clientService.GetTransactionByOrderId(tokenSession, tokenApp, orderId)!;
                         ViewBag.iframe = orderTransaction!.browserInfo!.challengeRequest;
                         ViewBag.statusPayment = null;
                     }

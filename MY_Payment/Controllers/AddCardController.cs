@@ -7,41 +7,41 @@ namespace MY_Payment.Controllers
 {
     public class AddCardController : Controller
     {
-        AuthService authService;
-        ClientService clientService;
-        private IConfiguration configuration;
+        private readonly AuthService _authService;
+        private readonly ClientService _clientService;
+        private readonly IConfiguration _configuration;
 
-        public AddCardController(IConfiguration _configuration)
+        public AddCardController(IConfiguration configuration, AuthService authService, ClientService clientService)
         {
-            this.configuration = _configuration;
-            clientService = new ClientService(configuration);
-            authService = new AuthService(configuration);
+            _configuration = configuration;
+            _clientService = clientService;
+            _authService = authService;
         }
 
         public async Task<IActionResult> Index()
         {
             try
             {
-                string hostUrl = configuration.GetValue<string>("globalVariables:hostUrlAdmin")!;
-                string hostAppLink = configuration.GetValue<string>("globalVariables:hostAppLink")!;
+                string hostUrl = _configuration.GetValue<string>("globalVariables:hostUrlAdmin")!;
+                string hostAppLink = _configuration.GetValue<string>("globalVariables:hostAppLink")!;
                 ViewBag.hostUrl = hostUrl;
                 ViewBag.hostAppLink = hostAppLink;
                 var queryString = HttpContext.Request.QueryString!.ToString();
                 if (!string.IsNullOrEmpty(queryString))
                 {
                     string sessionId = HttpContext.Request.Query["ts"].ToString();
-                    string tokenApp = await authService.GenerateTokenApplication();
-                    string tokenSession = await authService.GetCurrentTokenSession(sessionId, tokenApp);
+                    string tokenApp = await _authService.GenerateTokenApplication();
+                    string tokenSession = await _authService.GetCurrentTokenSession(sessionId, tokenApp);
                     if (String.IsNullOrEmpty(tokenSession))
                     {
                         ViewBag.showLoading = 'N';
                         ViewBag.cardError = "SHOW";
                         return View();
                     }
-                    Client? client = await clientService.GetClientInfo(tokenSession, tokenApp);
+                    Client? client = await _clientService.GetClientInfo(tokenSession, tokenApp);
                     if (client != null)
                     {
-                        string enviroment = configuration.GetValue<string>("globalVariables:enviroment")!;
+                        string enviroment = _configuration.GetValue<string>("globalVariables:enviroment")!;
                         ViewBag.enviroment = "stg";
                         if (enviroment.Equals("PROD"))
                         {
@@ -62,8 +62,8 @@ namespace MY_Payment.Controllers
                                 break;
                         }
 
-                        string server_application_code = configuration.GetValue<string>(tag + "clientAppCode")!;
-                        string server_app_key = configuration.GetValue<string>(tag + "clientAppKey")!;
+                        string server_application_code = _configuration.GetValue<string>(tag + "clientAppCode")!;
+                        string server_app_key = _configuration.GetValue<string>(tag + "clientAppKey")!;
                         ViewBag.appCode = server_application_code;
                         ViewBag.appKey = server_app_key;
                         ViewBag.showLoading = 'N';

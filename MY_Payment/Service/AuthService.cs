@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using MY_Payment.Models;
-using MY_Payment.Models.Response;
+﻿using MY_Payment.Models;
 using Newtonsoft.Json;
 using System.Text;
 
@@ -8,10 +6,13 @@ namespace MY_Payment.Service
 {
     public class AuthService
     {
-        private readonly IConfiguration configuration;
-        public AuthService(IConfiguration _configuration)
+        private readonly IConfiguration _configuration;
+        private readonly ILogger<AuthService> _logger;
+
+        public AuthService(IConfiguration configuration, ILogger<AuthService> logger)
         {
-            this.configuration = _configuration;
+            _configuration = configuration;
+            _logger = logger;
         }
 
         public async Task<string> GenerateTokenApplication()
@@ -21,7 +22,7 @@ namespace MY_Payment.Service
             {
                 try
                 {
-                    url = configuration.GetValue<string>("globalVariables:hostUrl")!;
+                    url = _configuration.GetValue<string>("globalVariables:hostUrl")!;
                     AuthPayload authPayload = new AuthPayload()
                     {
                         clientId = "OaMcdkAEFCqGbDUdtjOY",
@@ -50,6 +51,7 @@ namespace MY_Payment.Service
                 }
                 catch (Exception error)
                 {
+                    _logger.LogCritical("{event}{message}{exception}", "AuthService-GenerateTokenApplication", "Error", error);
                     throw;
                 }
             }
@@ -62,7 +64,7 @@ namespace MY_Payment.Service
             {
                 try
                 {
-                    url = configuration.GetValue<string>("globalVariables:hostUrl")!;
+                    url = _configuration.GetValue<string>("globalVariables:hostUrl")!;
                     var path = "/api/Security/session?sessionId=" + sessionId;
                     client.CancelPendingRequests();
                     client.DefaultRequestHeaders.Clear();
@@ -87,6 +89,7 @@ namespace MY_Payment.Service
                 }
                 catch (Exception error)
                 {
+                    _logger.LogCritical("{event}{message}{exception}", "AuthService-GetCurrentTokenSession ", "Error", error);
                     throw;
                 }
             }

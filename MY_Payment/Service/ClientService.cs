@@ -1,4 +1,5 @@
-﻿using MY_Payment.Models;
+﻿using Microsoft.AspNetCore.Http;
+using MY_Payment.Models;
 using MY_Payment.Models.Request;
 using MY_Payment.Models.Response;
 using Newtonsoft.Json;
@@ -8,11 +9,13 @@ namespace MY_Payment.Service
 {
     public class ClientService
     {
-        private readonly IConfiguration configuration;
+        private readonly IConfiguration _configuration;
+        private readonly ILogger<ClientService> _logger;
 
-        public ClientService(IConfiguration _configuration)
+        public ClientService(IConfiguration configuration, ILogger<ClientService> logger)
         {
-            this.configuration = _configuration;
+           _configuration = configuration;
+            _logger = logger;
         }
         
         public async Task<Client?> GetClientInfo(string tokenSession, string tokenApp)
@@ -22,7 +25,7 @@ namespace MY_Payment.Service
             {
                 try
                 {
-                    url = configuration.GetValue<string>("globalVariables:hostUrl")!;
+                    url = _configuration.GetValue<string>("globalVariables:hostUrl")!;
                     var path = "/api/Client";
                     client.CancelPendingRequests();
                     client.DefaultRequestHeaders.Clear();
@@ -39,11 +42,14 @@ namespace MY_Payment.Service
                     }
                     else
                     {
+                        string readTask = await response.Content.ReadAsStringAsync();
+                        _logger.LogError("{event}{message}{other_data}", "ClientService-GetClientInfo", "Error get ClientInfo", readTask);
                         return null;
                     }
                 }
                 catch (Exception error)
                 {
+                    _logger.LogCritical("{event}{message}{exception}", "ClientService-GetClientInfo", "Error", error);
                     throw;
                 }
             }
@@ -56,7 +62,7 @@ namespace MY_Payment.Service
             {
                 try
                 {
-                    url = configuration.GetValue<string>("globalVariables:hostUrl")!;
+                    url = _configuration.GetValue<string>("globalVariables:hostUrl")!;
                     var path = "/api/Order/id?orderId=" + orderId;
                     client.CancelPendingRequests();
                     client.DefaultRequestHeaders.Clear();
@@ -75,24 +81,26 @@ namespace MY_Payment.Service
                     else
                     {
                         string readTask = await response.Content.ReadAsStringAsync();
+                        _logger.LogError("{event}{message}{other_data}", "ClientService-GetOrderById", "Error get order by Id", readTask);
                         return null;
                     }
                 }
                 catch (Exception error)
                 {
+                    _logger.LogCritical("{event}{message}{exception}", "ClientService-GetOrderById", "Error", error);
                     throw;
                 }
             }
         }
 
-        public async Task<NuveiTransactionFull> GetTransactionByOrderId(string tokenSession, string tokenApp, string orderId)
+        public async Task<NuveiTransactionFull?> GetTransactionByOrderId(string tokenSession, string tokenApp, string orderId)
         {
             string url = "";
             using (var client = new HttpClient())
             {
                 try
                 {
-                    url = configuration.GetValue<string>("globalVariables:hostUrl")!;
+                    url = _configuration.GetValue<string>("globalVariables:hostUrl")!;
                     var path = "/api/Order/id/transaction?orderId=" + orderId;
                     client.CancelPendingRequests();
                     client.DefaultRequestHeaders.Clear();
@@ -109,11 +117,14 @@ namespace MY_Payment.Service
                     }
                     else
                     {
+                        string readTask = await response.Content.ReadAsStringAsync();
+                        _logger.LogError("{event}{message}{other_data}", "ClientService-GetTransactionByOrderId", "Error get order transaction by orderId", readTask);
                         return null;
                     }
                 }
                 catch (Exception error)
                 {
+                    _logger.LogCritical("{event}{message}{exception}", "ClientService-GetTransactionByOrderId", "Error", error);
                     throw;
                 }
             }
@@ -126,7 +137,7 @@ namespace MY_Payment.Service
             {
                 try
                 {
-                    url = configuration.GetValue<string>("globalVariables:hostUrl")!;
+                    url = _configuration.GetValue<string>("globalVariables:hostUrl")!;
                     CreateInvoicePayload authPayload = new CreateInvoicePayload()
                     {
                         orderId = orderId,
@@ -144,6 +155,7 @@ namespace MY_Payment.Service
                     {
                         var readTask = await response.Content.ReadAsStringAsync();
                         GetTokenResponse result = JsonConvert.DeserializeObject<GetTokenResponse>(readTask, new JsonSerializerSettings { Error = (sender, error) => error.ErrorContext.Handled = true })!;
+                        _logger.LogInformation("{event}{message}{other_data}", "ClientService-CreateInvoice", "Create Invoice response", result);
                         if (result!.result)
                         {
                             return "OK";
@@ -152,11 +164,14 @@ namespace MY_Payment.Service
                     }
                     else
                     {
+                        string readTask = await response.Content.ReadAsStringAsync();
+                        _logger.LogError("{event}{message}{other_data}", "ClientService-CreateInvoice", "Error to create invoice", readTask);
                         return "";
                     }
                 }
                 catch (Exception error)
                 {
+                    _logger.LogCritical("{event}{message}{exception}", "ClientService-CreateInvoice", "Error", error);
                     throw;
                 }
 

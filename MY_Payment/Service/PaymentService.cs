@@ -7,20 +7,23 @@ using System.Dynamic;
 using MY_Payment.Models.Response;
 using System.Globalization;
 using MY_Payment.Models.Request;
+using Microsoft.AspNetCore.Http;
 
 namespace MY_Payment.Service
 {
     public class PaymentService
     {
         private readonly IConfiguration configuration;
-        AuthService authService;
-        ClientService clientService;
+        private readonly AuthService _authService;
+        private readonly ClientService _clientService;
+        private readonly ILogger<PaymentService> _logger;
 
-        public PaymentService(IConfiguration _configuration)
+        public PaymentService(IConfiguration _configuration, AuthService authService, ILogger<PaymentService> logger, ClientService clientService)
         {
-            this.configuration = _configuration;
-            this.clientService = new ClientService(configuration);
-            this.authService = new AuthService(configuration);
+            configuration = _configuration;
+            _clientService = clientService;
+            _authService = authService;
+            _logger = logger;
         }
 
         private string GenerateToken(string credentialType)
@@ -140,10 +143,12 @@ namespace MY_Payment.Service
                     string token = GenerateToken("SERVER");
                     client.DefaultRequestHeaders.Add("Auth-Token", token);
                     var response = await client.GetAsync(url + path);
+                    _logger.LogInformation("{event}{message}{payload}", "PaymentService-GetClientCards", "Get Nuvei clientCards payload", path);
                     if (response.IsSuccessStatusCode)
                     {
                         var readTask = await response.Content.ReadAsStringAsync();
                         var result = JsonConvert.DeserializeObject<CardListResponse>(readTask);
+                        _logger.LogInformation("{event}{message}{other_data}", "PaymentService-GetClientCards", "Get Nuvei client cards response", result);
                         if (result!.cards!.Count > 0)
                         {
                             List<CardBrand> cardBrandList = await GetCardBrandList(tokenSession, tokenApp);
@@ -173,6 +178,7 @@ namespace MY_Payment.Service
                 }
                 catch (Exception error)
                 {
+                    _logger.LogCritical("{event}{message}{exception}", "PaymentService-GetClientCards", "Error", error);
                     throw;
                 }
             }
@@ -188,7 +194,7 @@ namespace MY_Payment.Service
             {
                 try
                 {
-                    Client? currentClient = await clientService.GetClientInfo(tokenSession, tokenApp);
+                    Client? currentClient = await _clientService.GetClientInfo(tokenSession, tokenApp);
                     if (currentClient == null)
                     {
                         throw new("No se encuentra información del cliente.");
@@ -200,7 +206,7 @@ namespace MY_Payment.Service
                         throw new("Error al confirmar la orden.");
                     }
 
-                    OrderMY? currentOrder = await this.clientService.GetOrderById(tokenSession, tokenApp, order!.Order!.Id!.ToString()!)!;
+                    OrderMY? currentOrder = await _clientService.GetOrderById(tokenSession, tokenApp, order!.Order!.Id!.ToString()!)!;
                     if (currentOrder == null)
                     {
                         throw new("Orden no existe.");
@@ -329,7 +335,7 @@ namespace MY_Payment.Service
                                 };
                                 await SendEmail(emailRequest);
                                 await ConfirmPaymentOrder(currentOrder.id.ToString(), tokenSession);
-                                clientService.CreateInvoice(tokenSession, tokenApp, currentOrder.id.ToString());
+                                _clientService.CreateInvoice(tokenSession, tokenApp, currentOrder.id.ToString());
                                 debit = new DebitResult()
                                 {
                                     error = false,
@@ -359,6 +365,7 @@ namespace MY_Payment.Service
                 }
                 catch (Exception error)
                 {
+                    _logger.LogCritical("{event}{message}{exception}", "PaymentService-GenerateDebit", "Error", error);
                     throw;
                 }
             }
@@ -373,7 +380,7 @@ namespace MY_Payment.Service
             {
                 try
                 {
-                    string tokenApp = await authService.GenerateTokenApplication();
+                    string tokenApp = await _authService.GenerateTokenApplication();
                     url = configuration.GetValue<string>("globalVariables:hostUrl")!;
                     var path = "/api/Payment/debit-status/order/" + orderId;
                     client.CancelPendingRequests();
@@ -414,7 +421,7 @@ namespace MY_Payment.Service
                     request.token = tokenCard;
                     request.clientAddressId = clientAddressId;
 
-                    string tokenApp = await authService.GenerateTokenApplication();
+                    string tokenApp = await _authService.GenerateTokenApplication();
                     url = configuration.GetValue<string>("globalVariables:hostUrl")!;
                     var path = "/api/Payment/confirm";
                     client.CancelPendingRequests();
@@ -452,13 +459,13 @@ namespace MY_Payment.Service
             {
                 string hostUrl = configuration.GetValue<string>("globalVariables:hostUrl")!;
 
-                OrderMY? order = await this.clientService.GetOrderById(tokenSession, tokenApp, orderId)!;
+                OrderMY? order = await _clientService.GetOrderById(tokenSession, tokenApp, orderId)!;
                 if (order == null)
                 {
                     throw new("Orden no existe.");
                 }
 
-                NuveiTransactionFull? orderTransactionFull = await clientService.GetTransactionByOrderId(tokenSession, tokenApp, orderId)!;
+                NuveiTransactionFull? orderTransactionFull = await _clientService.GetTransactionByOrderId(tokenSession, tokenApp, orderId)!;
                 NuveiTransaction? orderTransaction = orderTransactionFull!.transaction;
                 if (orderTransaction == null)
                 {
@@ -525,7 +532,7 @@ namespace MY_Payment.Service
                             };
                             await SendEmail(emailRequest);
                             await ConfirmPaymentOrder(order!.id.ToString(), tokenSession);
-                            clientService.CreateInvoice(tokenSession, tokenApp, order!.id.ToString());
+                            _clientService.CreateInvoice(tokenSession, tokenApp, order!.id.ToString());
 
                             return "SUCCESS";
                         }
@@ -685,7 +692,7 @@ namespace MY_Payment.Service
             {
                 try
                 {
-                    string tokenApp = await authService.GenerateTokenApplication();
+                    string tokenApp = await _authService.GenerateTokenApplication();
                     url = configuration.GetValue<string>("globalVariables:hostUrl")!;
                     var path = "/api/General/send-email";
                     client.CancelPendingRequests();
@@ -725,7 +732,7 @@ namespace MY_Payment.Service
                     dynamic request = new ExpandoObject();
                     request.orderId = orderId;
 
-                    string tokenApp = await authService.GenerateTokenApplication();
+                    string tokenApp = await _authService.GenerateTokenApplication();
                     url = configuration.GetValue<string>("globalVariables:hostUrl")!;
                     var path = "/api/Order/confirm";
                     client.CancelPendingRequests();
