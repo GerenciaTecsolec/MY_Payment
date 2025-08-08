@@ -1,12 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
-using MY_Payment.Models;
+﻿using MY_Payment.Models;
 using MY_Payment.Models.Request;
 using MY_Payment.Models.Response;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Net.Http.Headers;
 using System.Text;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace MY_Payment.Service
 {
@@ -23,7 +21,7 @@ namespace MY_Payment.Service
         
         public async Task<Client?> GetClientInfo(string tokenSession, string tokenApp)
         {
-            string url = "";
+            string url = string.Empty;
             using (var client = new HttpClient())
             {
                 try
@@ -60,7 +58,7 @@ namespace MY_Payment.Service
 
         public async Task<OrderMY?> GetOrderById(string tokenSession, string tokenApp, string orderId)
         {
-            string url = "";
+            string url = string.Empty;
             using (var client = new HttpClient())
             {
                 try
@@ -143,15 +141,15 @@ namespace MY_Payment.Service
             }
         }
 
-        public async Task<NuveiTransactionFull?> GetTransactionByShoppingCartId(string tokenSession, string tokenApp, string shoppingCartId)
+        public async Task<NuveiTransactionFull?> GetTransactionByShoppingCartId(string tokenSession, string tokenApp, string shoppingCartId, string sessionId)
         {
-            string url = "";
+            string url = string.Empty;
             using (var client = new HttpClient())
             {
                 try
                 {
                     url = _configuration.GetValue<string>("globalVariables:hostUrl")!;
-                    var path = "/api/ShoppingCart/id/transaction?shoppingCartId=" + shoppingCartId;
+                    var path = $"/api/ShoppingCart/id/transaction?shoppingCartId={shoppingCartId}&session={sessionId}";
                     client.CancelPendingRequests();
                     client.DefaultRequestHeaders.Clear();
                     client.Timeout = TimeSpan.FromSeconds(25);
@@ -168,7 +166,7 @@ namespace MY_Payment.Service
                     else
                     {
                         string readTask = await response.Content.ReadAsStringAsync();
-                        _logger.LogError("{event}{message}{other_data}", "GetTransactionByShoppingCartId", "Error get order transaction by orderId", readTask);
+                        _logger.LogError("{event}{message}{other_data}", "GetTransactionByShoppingCartId", "Error get order transaction by shoppingCartId", readTask);
                         return null;
                     }
                 }
@@ -180,9 +178,9 @@ namespace MY_Payment.Service
             }
         }
 
-        public async Task<string> CreateInvoice(string tokenSession, string tokenApp, string orderId)
+        public async Task CreateInvoice(string tokenSession, string tokenApp, string orderId)
         {
-            string url = "";
+            string url = string.Empty;
             using (var client = new HttpClient())
             {
                 try
@@ -205,23 +203,17 @@ namespace MY_Payment.Service
                     {
                         var readTask = await response.Content.ReadAsStringAsync();
                         GetTokenResponse result = JsonConvert.DeserializeObject<GetTokenResponse>(readTask, new JsonSerializerSettings { Error = (sender, error) => error.ErrorContext.Handled = true })!;
-                        _logger.LogInformation("{event}{message}{other_data}", "ClientService-CreateInvoice", "Create Invoice response", result);
-                        if (result!.result)
-                        {
-                            return "OK";
-                        }
-                        return "";
+                        _logger.LogInformation("{event}{message}{other_data}", "CreateInvoice", "Create Invoice response", result);
                     }
                     else
                     {
                         string readTask = await response.Content.ReadAsStringAsync();
-                        _logger.LogError("{event}{message}{other_data}", "ClientService-CreateInvoice", "Error to create invoice", readTask);
-                        return "";
+                        _logger.LogError("{event}{message}{other_data}", "CreateInvoice", "Error to create invoice", readTask);
                     }
                 }
                 catch (Exception error)
                 {
-                    _logger.LogCritical("{event}{message}{exception}", "ClientService-CreateInvoice", "Error", error);
+                    _logger.LogCritical("{event}{message}{exception}", "CreateInvoice", "Error", error);
                     throw;
                 }
 

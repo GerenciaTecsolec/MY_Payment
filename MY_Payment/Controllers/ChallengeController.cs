@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using MY_Payment.Models;
 using MY_Payment.Service;
 
@@ -9,9 +10,11 @@ namespace MY_Payment.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly AuthService _authService;
         private readonly ClientService _clientService;
+        private readonly IConfiguration _configuration;
 
-        public ChallengeController(ILogger<HomeController> logger, AuthService authService, ClientService clientService)
+        public ChallengeController(IConfiguration configuration, ILogger<HomeController> logger, AuthService authService, ClientService clientService)
         {
+            _configuration = configuration;
             _logger = logger;
             _clientService = clientService;
             _authService = authService;
@@ -22,6 +25,12 @@ namespace MY_Payment.Controllers
         {
             try
             {
+
+                string hostUrl = _configuration.GetValue<string>("globalVariables:hostUrlAdmin")!;
+                string hostAppLink = _configuration.GetValue<string>("globalVariables:hostAppLink")!;
+                ViewBag.hostUrl = hostUrl;
+                ViewBag.hostAppLink = hostAppLink;
+
                 var queryString = HttpContext.Request.QueryString!.ToString();
                 if (!string.IsNullOrEmpty(queryString))
                 {
@@ -33,7 +42,7 @@ namespace MY_Payment.Controllers
                     Client? client = await _clientService.GetClientInfo(tokenSession, tokenApp);
                     if (client != null)
                     {
-                        NuveiTransactionFull? orderTransaction = await _clientService.GetTransactionByShoppingCartId(tokenSession, tokenApp, shoppingCartId)!;
+                        NuveiTransactionFull? orderTransaction = await _clientService.GetTransactionByShoppingCartId(tokenSession, tokenApp, shoppingCartId, sessionId)!;
                         ViewBag.iframe = orderTransaction!.browserInfo!.challengeRequest;
                         ViewBag.statusPayment = null;
                     }

@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using MY_Payment.Models;
 using MY_Payment.Service;
 
@@ -11,13 +10,15 @@ namespace MY_Payment.Controllers
         private readonly ClientService _clientService;
         private readonly IConfiguration _configuration;
         private readonly PaymentService _paymentService;
+        private readonly ILogger<VerifyController> _logger;
 
-        public VerifyController(IConfiguration configuration, AuthService authService, PaymentService paymentService, ClientService clientService)
+        public VerifyController(IConfiguration configuration, AuthService authService, PaymentService paymentService, ClientService clientService, ILogger<VerifyController> logger)
         {
             _configuration = configuration;
             _paymentService = paymentService;
             _clientService = clientService;
             _authService = authService;
+            _logger = logger;
         }
 
         public async Task<IActionResult> Index()
@@ -29,7 +30,7 @@ namespace MY_Payment.Controllers
                 ViewBag.hostUrl = hostUrl;
                 ViewBag.hostAppLink =  hostAppLink;
                 var queryString = HttpContext.Request.QueryString!.ToString();
-                //window.parent.location.href = '{0}/Verify/index?cart={1}&cres={2}&ts={3}&sec={4}&ad={6}';
+                _logger.LogInformation("{event}{message}{other_data}", "Index", "Query string parameters entry.", queryString);
                 if (!string.IsNullOrEmpty(queryString))
                 {
                     string sessionId = HttpContext.Request.Query["ts"].ToString();
@@ -44,35 +45,42 @@ namespace MY_Payment.Controllers
                     Client? client = await _clientService.GetClientInfo(tokenSession, tokenApp);
                     if (client != null)
                     {
-                        string result = await _paymentService.VerifyTransaction(tokenSession, tokenApp, shoppingCartId, cresId ?? "", client, clientAddressId);
+                        string result = await _paymentService.VerifyTransaction(tokenSession, tokenApp, shoppingCartId, cresId ?? "", client, clientAddressId, sessionId);
                         ViewBag.statusPayment = result;
                         ViewBag.showLoading = 'N';
                         ViewBag.shoppingCartId = shoppingCartId;
                         ViewBag.secuence = secuence;
+                        return View();
                     }
                     else
                     {
+                        _logger.LogError("{event}{message}", "Index", "Client not found.");
                         ViewBag.showLoading = 'N';
                         ViewBag.statusPayment = "ERROR";
                         ViewBag.shoppingCartId = "";
                         ViewBag.secuence = "";
+                        return View();
                     }
                 }
                 else
                 {
+                    _logger.LogError("{event}{message}{other_data}", "Index", "Query string parameters are empty.", queryString);
                     ViewBag.showLoading = 'N';
                     ViewBag.statusPayment ="ERROR";
                     ViewBag.shoppingCartId = "";
                     ViewBag.secuence = "";
+                    return View();
                 }
-                
             }
-            catch (Exception ex)
+            catch (Exception error)
             {
+                _logger.LogCritical("{event}{message}{exception}", "Index", "Error", error);
                 ViewBag.showLoading = 'N';
                 ViewBag.statusPayment = "ERROR";
+                ViewBag.shoppingCartId = "";
+                ViewBag.secuence = "";
+                return View();
             }
-            return View();
         }
 
         public IActionResult Links()

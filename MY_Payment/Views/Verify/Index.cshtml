@@ -82,7 +82,6 @@
 
                 document.getElementById('idLoading').style.visibility = 'visible';
                 var showLoading = '@ViewBag.showLoading';
-                console.log(showLoading);
                 if (showLoading == "Y") {
                     document.getElementById('idLoading').style.visibility = 'visible';
                 } else {
@@ -92,7 +91,6 @@
                 var statusPayment = '@ViewBag.statusPayment';
                 var shoppingCartId = '@ViewBag.shoppingCartId';
                 var secuence = '@ViewBag.secuence';
-                console.log('statusPayment', statusPayment, shoppingCartId, secuence);
 
                 if (statusPayment == 'SUCCESS') {
                     sleep(3000).then(() => { 
@@ -105,16 +103,6 @@
 
             function send_Data(errorExits, paymentStatus, shoppingCartId, secuence) {
 
-                var result = {
-                    error: errorExits,
-                    status: paymentStatus,
-                    shoppingCartId: shoppingCartId,
-                    secuence: secuence
-                }
-                console.log('parameters', result);
-                console.log('hostAppLink - verify', hostAppLink);
-                window.parent.postMessage(parameters, hostAppLink);
-
                  var parameters = {
                     error: errorExits,
                     status: paymentStatus,
@@ -122,10 +110,9 @@
                     secuence: secuence
                 }
 
-                console.log('parameters', parameters);
-                console.log('hostAppLink - Home', hostAppLink);
+                console.log('parameters - Verify', parameters);
+                console.log('hostAppLink - Verify', hostAppLink);
                 window.parent.postMessage(parameters, hostAppLink);
-
             }
 
             function sleep(ms) {

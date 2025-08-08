@@ -4,7 +4,6 @@ using MY_Payment.Models;
 using MY_Payment.Models.Response;
 using MY_Payment.Service;
 using System.Diagnostics;
-using System.Transactions;
 
 namespace MY_Payment.Controllers
 {
@@ -30,7 +29,6 @@ namespace MY_Payment.Controllers
         {
             try 
             {
-                _logger.LogInformation("{event}{message}", "HomeController-Index", "Inicio de proceso");
                 string hostUrl = _configuration.GetValue<string>("globalVariables:hostUrlAdmin")!;
                 string hostAppLink = _configuration.GetValue<string>("globalVariables:hostAppLink")!;
                 ViewBag.hostUrl = hostUrl;
@@ -38,8 +36,6 @@ namespace MY_Payment.Controllers
                 var queryString = HttpContext.Request.QueryString!.ToString();
                 if (!string.IsNullOrEmpty(queryString))
                 {
-                    _logger.LogInformation("{event}{message}{other_data}", "HomeController-Index", "Inicio de proceso", queryString);
-
                     CardForm cardForm = new CardForm();
                     string sessionId = HttpContext.Request.Query["ts"].ToString();
                     string tokenCard = HttpContext.Request.Query["tc"].ToString();
@@ -53,43 +49,54 @@ namespace MY_Payment.Controllers
                         return View();
                     }
                     Client? client = await _clientService.GetClientInfo(tokenSession, tokenApp);
-                    if (client != null)
+
+                    if(client == null)
                     {
-                        List<ClientCard> clientCardList = await _paymentService.GetClientCards(client.id.ToString(), tokenSession, tokenApp);
-                        if (clientCardList.Count > 0)
+                        _logger.LogError("{event}{message}", "Index", "Client not found.");
+                        ViewBag.showLoading = 'N';
+                        ViewBag.card = null;
+                        ViewBag.cardError = "SHOW";
+                        return View();
+                    }
+
+                    List<ClientCard> clientCardList = await _paymentService.GetClientCards(client.id.ToString(), tokenSession, tokenApp);
+                    if (clientCardList.Count > 0)
+                    {
+                        ClientCard card = clientCardList.Find(card => card.Token == tokenCard)!;
+                        if (card != null)
                         {
-                            ClientCard card = clientCardList.Find(card => card.token == tokenCard)!;
-                            if (card != null)
+                            ClientCard currentCard = card;
+                            cardForm = new CardForm()
                             {
-                                ClientCard currentCard = card;
-                                cardForm = new CardForm()
-                                {
-                                    holderName = client.name.ToUpper() + " " + client.paternalSurname!.ToUpper(),
-                                    number = card.number.Replace("*", "&bull;"),
-                                    cardBrand = card.cardBrand.brand,
-                                    cardLogo = $"{hostUrl}{card.cardBrand.logo}"
-                                };
-                            }
+                                HolderName = client.name.ToUpper() + " " + client.paternalSurname!.ToUpper(),
+                                Number = card.Number.Replace("*", "&bull;"),
+                                CardBrand = card.CardBrand.Brand,
+                                CardLogo = $"{hostUrl}{card.CardBrand.Logo}"
+                            };
                         }
                     }
                     ViewBag.cardError = "HIDE";
                     ViewBag.card = cardForm;
+                    return View();
                 }
                 else
                 {
+                    _logger.LogError("{event}{message}{other_data}", "Index", "Query string parameters are empty.", queryString);
                     ViewBag.showLoading = 'N';
                     ViewBag.card = null;
                     ViewBag.cardError = "SHOW";
+                    return View();
                 }
             }
             catch(Exception error)
             {
-                _logger.LogCritical("{event}{message}{exception}", "HomeController-Index", "Error", error);
+                _logger.LogCritical("{event}{message}{exception}", "Index", "Error", error);
                 ViewBag.showLoading = 'N';
                 ViewBag.card = null;
                 ViewBag.cardError = "SHOW";
+                return View();
             }
-            return View();
+            
         }
 
         public async Task<JsonResult> ConfirmPayment(Parameters parameters)
@@ -155,7 +162,7 @@ namespace MY_Payment.Controllers
             string paymentStatus = "";
             if (client != null)
             {
-                string result = await _paymentService.VerifyTransaction(tokenSession, tokenApp, shoppingCartId, cresId, client, clientAddressId);
+                string result = await _paymentService.VerifyTransaction(tokenSession, tokenApp, shoppingCartId, cresId, client, clientAddressId, sessionId);
                 paymentStatus = result;
             }
             ViewBag.showLoading = 'Y';

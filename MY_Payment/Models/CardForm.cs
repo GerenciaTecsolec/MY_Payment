@@ -4,9 +4,16 @@ namespace MY_Payment.Models
 {
     public class CardForm
     {
-        public string? holderName { get; set; }
-        public string? number { get; set; }
-        public string? cardBrand { get; set; }
-        public string? cardLogo { get; set; }
+        [JsonProperty("holderName")]
+        public string? HolderName { get; set; }
+
+        [JsonProperty("number")]
+        public string? Number { get; set; }
+
+        [JsonProperty("cardBrand")]
+        public string? CardBrand { get; set; }
+
+        [JsonProperty("cardLogo")]
+        public string? CardLogo { get; set; }
     }
 }

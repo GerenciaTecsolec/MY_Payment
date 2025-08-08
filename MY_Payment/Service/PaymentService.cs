@@ -8,6 +8,7 @@ using MY_Payment.Models.Response;
 using System.Globalization;
 using MY_Payment.Models.Request;
 using System.Net.Http.Headers;
+using Microsoft.AspNetCore.Http;
 
 namespace MY_Payment.Service
 {
@@ -155,13 +156,13 @@ namespace MY_Payment.Service
                             List<ClientCard> clientCards = new List<ClientCard>();
                             foreach (var card in result.cards)
                             {
-                                var brand = cardBrandList.Find(x => x.cardType.ToString().ToUpper() == card?.type?.ToUpper());
+                                var brand = cardBrandList.Find(x => x.CardType.ToString().ToUpper() == card?.type?.ToUpper());
                                 ClientCard clientCard = new ClientCard()
                                 {
-                                    holderName = card!.holderName!.ToUpper(),
-                                    number = card!.bin + " *** *** " + card!.number,
-                                    token = card!.token ?? "",
-                                    cardBrand = brand!
+                                    HolderName = card!.holderName!.ToUpper(),
+                                    Number = card!.bin + " *** *** " + card!.number,
+                                    Token = card!.token ?? "",
+                                    CardBrand = brand!
                                 };
                                 clientCards.Add(clientCard);
                             }
@@ -234,8 +235,7 @@ namespace MY_Payment.Service
 
         public async Task<DebitResult?> GenerateDebit(string tokenCard, string tokenSession, BrowserInfo browserInfo, string clientAddressId, string tokenApp, string sessionId)
         {
-            string url = "";
-            DebitResult debit = new DebitResult();
+            string url = string.Empty;
             ServicePointManager.ServerCertificateValidationCallback += (sender, certificate, chain, sslPolicyErrors) => true;
             System.Net.ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             using (var client = new HttpClient())
@@ -285,8 +285,8 @@ namespace MY_Payment.Service
 
                     var debitOrder = new NuveiDebitOrder();
                     debitOrder.Amount = paymentResume.Total;
-                    debitOrder.Description = $"Mercado YA, debito de orden {shoppingCartId}";
-                    debitOrder.DevReference = shoppingCartId;
+                    debitOrder.Description = $"Mercado YA, {shoppingCartId} cart debit";
+                    debitOrder.DevReference = sessionId; //Se envia la sesion, pra hacer match entre el id de carrito y la sesion en curso
                     debitOrder.Vat = 0;
                     debitOrder.TaxPercentage = 0;
                     debitOrder.TaxableAmount = 0;
@@ -326,6 +326,7 @@ namespace MY_Payment.Service
                         NuveiDebitWithTokenResponse result = JsonConvert.DeserializeObject<NuveiDebitWithTokenResponse>(readTask, new JsonSerializerSettings { Error = (sender, error) => error.ErrorContext.Handled = true })!;
                         await this.SaveDebitTransaction(result!, shoppingCartId);
                         string iframe = string.Empty;
+                        DebitResult debit = new DebitResult();
                         if (result != null)
                         {
                             int statusDetail = result!.Transaction!.StatusDetail!;
@@ -418,7 +419,7 @@ namespace MY_Payment.Service
                     else
                     {
                         var readTask = await response.Content.ReadAsStringAsync();
-                        debit = new DebitResult()
+                        var debit = new DebitResult()
                         {
                             error = true,
                             resultCode = "ERROR",
@@ -519,13 +520,13 @@ namespace MY_Payment.Service
         }
 
 
-        public async Task<string> VerifyTransaction(string tokenSession, string tokenApp, string shoppingCartId, string? cres, Client currentClient, string clientAddressId)
+        public async Task<string> VerifyTransaction(string tokenSession, string tokenApp, string shoppingCartId, string? cres, Client currentClient, string clientAddressId, string sessionId)
         {
             try
             {
                 string hostUrl = configuration.GetValue<string>("globalVariables:hostUrl")!;
 
-                NuveiTransactionFull? orderTransactionFull = await _clientService.GetTransactionByShoppingCartId(tokenSession, tokenApp, shoppingCartId)!;
+                NuveiTransactionFull? orderTransactionFull = await _clientService.GetTransactionByShoppingCartId(tokenSession, tokenApp, shoppingCartId, sessionId)!;
                 NuveiTransaction? orderTransaction = orderTransactionFull!.transaction;
                 if (orderTransaction == null)
                 {
@@ -581,19 +582,17 @@ namespace MY_Payment.Service
                         {
                             //Se crea la orden, se envia email de la confirmacion del debito y la confirmacion de la orden al chef por notification push del navegador (Chrome)
                             // Se genera la factura
-
-                            var order = await this.ConfirmOrder(clientAddressId, "token card", tokenSession);
-                            if (order!.Order == null)
+                            var order = await this.ConfirmOrder(clientAddressId, "Payment using token card.", tokenSession);
+                            if (order.Order == null)
                             {
                                 throw new InvalidOperationException("Error to confirm order.");
                             }
 
-                            OrderMY? currentOrder = await _clientService.GetOrderById(tokenSession, tokenApp, order!.Order!.Id!.ToString()!)!;
+                            OrderMY? currentOrder = await _clientService.GetOrderById(tokenSession, tokenApp, order.Order.Id.ToString());
                             if (currentOrder == null)
                             {
                                 throw new InvalidOperationException("Order not found.");
                             }
-
 
                             string percentageServiceTax = configuration.GetValue<string>("globalVariables:service") ?? "0";
                             decimal serviceTax = (currentOrder.amount + currentOrder.deliveryFee) * (Convert.ToDecimal(percentageServiceTax) / (decimal)100);
@@ -603,7 +602,7 @@ namespace MY_Payment.Service
                                 sendTo = currentClient!.email!,
                                 copyTo = "",
                                 content = emailContent,
-                                subject = "Autorizacion de Compra MercadoYa - Paymentez"
+                                subject = "Autorizacion de Compra MercadoYa - Nuvei"
                             };
                             await SendEmail(emailRequest);
                             await ConfirmPaymentOrder(currentOrder.id.ToString(), tokenSession);
@@ -619,6 +618,7 @@ namespace MY_Payment.Service
                     else
                     {
                         var readTask = await response.Content.ReadAsStringAsync();
+                        _logger.LogError("{event}{message}{response}", "VerifyTransaction", "Nuvei Verify response.", readTask);
                         return "ERROR";
                     }
                 }
@@ -626,6 +626,7 @@ namespace MY_Payment.Service
             }
             catch (Exception error)
             {
+                _logger.LogCritical("{event}{message}{exception}", "VerifyTransaction", "Error", error);
                 return "ERROR";
             }
         }

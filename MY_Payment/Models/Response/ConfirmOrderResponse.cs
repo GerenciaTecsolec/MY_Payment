@@ -12,9 +12,9 @@ namespace MY_Payment.Models.Response
     public partial class Order
     {
         [JsonProperty("id")]
-        public Guid? Id { get; set; }
+        public required Guid Id { get; set; }
 
         [JsonProperty("number")]
-        public string Number { get; set; }
+        public required string Number { get; set; }
     }
 }

@@ -27,10 +27,10 @@
                         <div class="credit__reader--risk credit__reader--risk-three"></div>
                         <div class="credit__reader--risk credit__reader--risk-four"></div>
                     </div>
-                    <p class="credit__number">@Html.Raw(ViewBag.card.number)</p>
-                    <p class="credit__name">@ViewBag.card.holderName</p>
+                    <p class="credit__number">@Html.Raw(ViewBag.card.Number)</p>
+                    <p class="credit__name">@ViewBag.card.HolderName</p>
                     <div class="credit__flag">
-                        <img src="@ViewBag.card.cardLogo" class="credit-brand-figure-logo" />
+                        <img src="@ViewBag.card.CardLogo" class="credit-brand-figure-logo" />
                     </div>
                 </div>
                 <button class="btn btn-success btn-success-my px-5 w-100 fs-5 white-color-my shadow" type="button" onclick="ConfirmPayment()" id="btnConfirm">Aceptar pago</button>
@@ -280,7 +280,7 @@
                     secuence: secuence
                 }
 
-                console.log('parameters', parameters);
+                console.log('parameters - Home', parameters);
                 console.log('hostAppLink - Home', hostAppLink);
                 window.parent.postMessage(parameters, hostAppLink);
             }
