@@ -7,7 +7,7 @@ using System.Dynamic;
 using MY_Payment.Models.Response;
 using System.Globalization;
 using MY_Payment.Models.Request;
-using Microsoft.AspNetCore.Http;
+using System.Net.Http.Headers;
 
 namespace MY_Payment.Service
 {
@@ -184,6 +184,54 @@ namespace MY_Payment.Service
             }
         }
 
+        public async Task<PaymentResume?> GetPaymentResume(string tokenSession, string tokenApp, string shoppingCartId, string clientAddressId)
+        {
+            var baseUrl = configuration.GetValue<string>("globalVariables:hostUrl");
+
+            if (string.IsNullOrWhiteSpace(baseUrl))
+            {
+                _logger.LogError("{event}{message}", "GetPaymentResume", "Missing or invalid hostUrl configuration.");
+                return null;
+            }
+
+            var requestUri = $"{baseUrl}/api/Payment/resume?shoppingCartId={shoppingCartId}";
+
+            try
+            {
+                using var client = new HttpClient
+                {
+                    Timeout = TimeSpan.FromSeconds(25)
+                };
+
+                client.DefaultRequestHeaders.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                client.DefaultRequestHeaders.Add("tokenSession", tokenSession);
+                client.DefaultRequestHeaders.Add("clientAddressId", clientAddressId);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenApp);
+
+                var response = await client.GetAsync(requestUri);
+                var responseContent = await response.Content.ReadAsStringAsync();
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = JsonConvert.DeserializeObject<PaymentResumeResponse>(responseContent);
+                    if (result?.ResultMessage != null)
+                    {
+                        return result.ResultMessage;
+                    }
+                    _logger.LogError("{event}{message}{response}", "GetPaymentResume", "Payment resume is null.", responseContent);
+                    return null;
+                }
+
+                _logger.LogError("{event}{message}{response}", "GetPaymentResume", "Error getting client shoppingCart.", responseContent);
+                return null;
+            }
+            catch (Exception exception)
+            {
+                _logger.LogCritical("{event}{message}{exception}", "GetPaymentResume", "Error", exception);
+                throw;
+            }
+        }
+
         public async Task<DebitResult?> GenerateDebit(string tokenCard, string tokenSession, BrowserInfo browserInfo, string clientAddressId, string tokenApp, string sessionId)
         {
             string url = "";
@@ -197,23 +245,23 @@ namespace MY_Payment.Service
                     Client? currentClient = await _clientService.GetClientInfo(tokenSession, tokenApp);
                     if (currentClient == null)
                     {
-                        throw new("No se encuentra información del cliente.");
+                        throw new InvalidOperationException("Client not found.");
                     }
 
-                    var order = await this.ConfirmOrder(clientAddressId, tokenCard, tokenSession);
-                    if (order!.Order == null)
+                    var shoppingCartId = await _clientService.GetCurrentShoppingCart(tokenSession, tokenApp);
+                    if (string.IsNullOrEmpty(shoppingCartId))
                     {
-                        throw new("Error al confirmar la orden.");
+                        throw new InvalidOperationException("Client does not have an active shopping cart.");
                     }
 
-                    OrderMY? currentOrder = await _clientService.GetOrderById(tokenSession, tokenApp, order!.Order!.Id!.ToString()!)!;
-                    if (currentOrder == null)
+                    var paymentResume = await GetPaymentResume(tokenSession, tokenApp, shoppingCartId, clientAddressId);
+                    if (paymentResume == null)
                     {
-                        throw new("Orden no existe.");
+                        throw new InvalidOperationException("Failed to retrieve the client's payment summary.");
                     }
 
                     string enviroment = configuration.GetValue<string>("globalVariables:enviroment")!;
-                    string tag = "";
+                    string tag = string.Empty;
                     switch (enviroment)
                     {
                         case "QA":
@@ -236,9 +284,9 @@ namespace MY_Payment.Service
                     decimal serviceTax = (Convert.ToDecimal(percentageServiceTax) / (decimal)100);
 
                     var debitOrder = new NuveiDebitOrder();
-                    debitOrder.Amount = currentOrder!.total!;
-                    debitOrder.Description = "Mercado YA, pago de la orden N° 12345";
-                    debitOrder.DevReference = order!.Order!.Id!.ToString()!;
+                    debitOrder.Amount = paymentResume.Total;
+                    debitOrder.Description = $"Mercado YA, debito de orden {shoppingCartId}";
+                    debitOrder.DevReference = shoppingCartId;
                     debitOrder.Vat = 0;
                     debitOrder.TaxPercentage = 0;
                     debitOrder.TaxableAmount = 0;
@@ -251,8 +299,7 @@ namespace MY_Payment.Service
                     threeDs2Data.DeviceType = "browser";
 
                     string webhook = configuration.GetValue<string>("globalVariables:webhook")!;
-
-                    threeDs2Data.TermUrl = webhook + "/" + order!.Order!.Id!.ToString()! + "/" + sessionId + "/" + order!.Order!.Number!;
+                    threeDs2Data.TermUrl = webhook + "/" + shoppingCartId + "/" + sessionId + "/" + clientAddressId;
 
                     ExtraParams extraParams = new ExtraParams();
                     extraParams.BrowserInfoData = browserInfo;
@@ -277,39 +324,43 @@ namespace MY_Payment.Service
                     {
                         var readTask = await response.Content.ReadAsStringAsync();
                         NuveiDebitWithTokenResponse result = JsonConvert.DeserializeObject<NuveiDebitWithTokenResponse>(readTask, new JsonSerializerSettings { Error = (sender, error) => error.ErrorContext.Handled = true })!;
-                        await this.SaveDebitTransaction(result!, order!.Order!.Id!.ToString()!);
-                        string iframe = "";
+                        await this.SaveDebitTransaction(result!, shoppingCartId);
+                        string iframe = string.Empty;
                         if (result != null)
                         {
                             int statusDetail = result!.Transaction!.StatusDetail!;
                             if (statusDetail == 35)
                             {
+                                //3DS method requested, waiting to continue, termina en VerifyTransaction
                                 debit = new DebitResult()
                                 {
                                     error = false,
                                     codeStatus = statusDetail!.ToString(),
                                     iframe = result!.ThreeDs!.BrowserResponse!.HiddenIframe!,
-                                    order = order!.Order!.Id!.ToString()!
+                                    shoppingCartId = shoppingCartId,
+                                    clientAddressId = clientAddressId
                                 };
                             }
                             if (statusDetail == 36)
                             {
+                                //3DS challenge requested, waiting CRES, termina en VerifyTransaction
                                 debit = new DebitResult()
                                 {
                                     error = false,
                                     codeStatus = statusDetail!.ToString(),
                                     iframe = result!.ThreeDs!.BrowserResponse!.ChallengeRequest!,
                                     transactionId = result!.Transaction!.Id!.ToString()!,
-                                    order = order!.Order!.Id!.ToString()!
+                                    shoppingCartId = shoppingCartId
                                 };
                             }
                             if (statusDetail == 31)
                             {
+                                //Waiting for OTP, termina en verifyTransaction
                                 debit = new DebitResult()
                                 {
                                     error = false,
                                     codeStatus = statusDetail!.ToString(),
-                                    order = order!.Order!.Id!.ToString()!
+                                    shoppingCartId = shoppingCartId
                                 };
                             }
                             if (statusDetail == 39)
@@ -320,11 +371,26 @@ namespace MY_Payment.Service
                                     codeStatus = statusDetail!.ToString(),
                                     iframe = result!.ThreeDs!.BrowserResponse!.ChallengeRequest!,
                                     transactionId = result!.Transaction!.Id!.ToString()!,
-                                    order = order!.Order!.Id!.ToString()!
+                                    shoppingCartId = shoppingCartId
                                 };
                             }
                             if (statusDetail == 3)
                             {
+                                //Paid Successfully, flujo limpio
+
+                                var order = await this.ConfirmOrder(clientAddressId, tokenCard, tokenSession);
+                                if (order!.Order == null)
+                                {
+                                    throw new InvalidOperationException("Error al confirmar la orden.");
+                                }
+
+                                OrderMY? currentOrder = await _clientService.GetOrderById(tokenSession, tokenApp, order!.Order!.Id!.ToString()!)!;
+                                if (currentOrder == null)
+                                {
+                                    throw new InvalidOperationException("Orden no existe.");
+                                }
+
+
                                 string emailContent = DebitNotificationEmail(result!.Transaction!.Id.ToString()!, result!.Transaction!.AuthorizationCode!, "Pago de la orden N° " + currentOrder.secuence + ".", currentOrder.total);
                                 EmailRequest emailRequest = new EmailRequest()
                                 {
@@ -335,7 +401,7 @@ namespace MY_Payment.Service
                                 };
                                 await SendEmail(emailRequest);
                                 await ConfirmPaymentOrder(currentOrder.id.ToString(), tokenSession);
-                                _clientService.CreateInvoice(tokenSession, tokenApp, currentOrder.id.ToString());
+                                _ = _clientService.CreateInvoice(tokenSession, tokenApp, currentOrder.id.ToString());
                                 debit = new DebitResult()
                                 {
                                     error = false,
@@ -365,7 +431,7 @@ namespace MY_Payment.Service
                 }
                 catch (Exception error)
                 {
-                    _logger.LogCritical("{event}{message}{exception}", "PaymentService-GenerateDebit", "Error", error);
+                    _logger.LogCritical("{event}{message}{exception}", "GenerateDebit", "Error", error);
                     throw;
                 }
             }
@@ -453,23 +519,17 @@ namespace MY_Payment.Service
         }
 
 
-        public async Task<string> VerifyTransaction(string tokenSession, string tokenApp, string orderId, string? cres, Client currentClient)
+        public async Task<string> VerifyTransaction(string tokenSession, string tokenApp, string shoppingCartId, string? cres, Client currentClient, string clientAddressId)
         {
             try
             {
                 string hostUrl = configuration.GetValue<string>("globalVariables:hostUrl")!;
 
-                OrderMY? order = await _clientService.GetOrderById(tokenSession, tokenApp, orderId)!;
-                if (order == null)
-                {
-                    throw new("Orden no existe.");
-                }
-
-                NuveiTransactionFull? orderTransactionFull = await _clientService.GetTransactionByOrderId(tokenSession, tokenApp, orderId)!;
+                NuveiTransactionFull? orderTransactionFull = await _clientService.GetTransactionByShoppingCartId(tokenSession, tokenApp, shoppingCartId)!;
                 NuveiTransaction? orderTransaction = orderTransactionFull!.transaction;
                 if (orderTransaction == null)
                 {
-                    throw new("No existe la transaccion de la orden.");
+                    throw new InvalidOperationException("Transaction does not exist.");
                 }
 
                 string enviroment = configuration.GetValue<string>("globalVariables:enviroment")!;
@@ -516,13 +576,28 @@ namespace MY_Payment.Service
                     {
                         var readTask = await response.Content.ReadAsStringAsync();
                         NuveiDebitWithTokenResponse result = JsonConvert.DeserializeObject<NuveiDebitWithTokenResponse>(readTask, new JsonSerializerSettings { Error = (sender, error) => error.ErrorContext.Handled = true })!;
-                        await this.SaveDebitTransaction(result!, order!.id.ToString()!);
+                        await this.SaveDebitTransaction(result!, shoppingCartId);
                         if (result!.Transaction!.StatusDetail == 3)
                         {
-                            //Aqui se envia email de la confirmacion del debito y la confirmacionde la orden al chef
+                            //Se crea la orden, se envia email de la confirmacion del debito y la confirmacion de la orden al chef por notification push del navegador (Chrome)
+                            // Se genera la factura
+
+                            var order = await this.ConfirmOrder(clientAddressId, "token card", tokenSession);
+                            if (order!.Order == null)
+                            {
+                                throw new InvalidOperationException("Error to confirm order.");
+                            }
+
+                            OrderMY? currentOrder = await _clientService.GetOrderById(tokenSession, tokenApp, order!.Order!.Id!.ToString()!)!;
+                            if (currentOrder == null)
+                            {
+                                throw new InvalidOperationException("Order not found.");
+                            }
+
+
                             string percentageServiceTax = configuration.GetValue<string>("globalVariables:service") ?? "0";
-                            decimal serviceTax = (order!.amount + order!.deliveryFee) * (Convert.ToDecimal(percentageServiceTax) / (decimal)100);
-                            string emailContent = DebitNotificationEmail(orderTransaction!.nuveiTransactionId!, result!.Transaction!.AuthorizationCode!, "Pago de la orden N° " + order!.secuence! + ".", Math.Round((order!.amount + order!.deliveryFee + serviceTax),2));
+                            decimal serviceTax = (currentOrder.amount + currentOrder.deliveryFee) * (Convert.ToDecimal(percentageServiceTax) / (decimal)100);
+                            string emailContent = DebitNotificationEmail(orderTransaction!.nuveiTransactionId!, result!.Transaction!.AuthorizationCode!, "Pago de la orden N° " + currentOrder.secuence! + ".", Math.Round((currentOrder.amount + currentOrder.deliveryFee + serviceTax),2));
                             EmailRequest emailRequest = new EmailRequest()
                             {
                                 sendTo = currentClient!.email!,
@@ -531,8 +606,8 @@ namespace MY_Payment.Service
                                 subject = "Autorizacion de Compra MercadoYa - Paymentez"
                             };
                             await SendEmail(emailRequest);
-                            await ConfirmPaymentOrder(order!.id.ToString(), tokenSession);
-                            _clientService.CreateInvoice(tokenSession, tokenApp, order!.id.ToString());
+                            await ConfirmPaymentOrder(currentOrder.id.ToString(), tokenSession);
+                            _ = _clientService.CreateInvoice(tokenSession, tokenApp, currentOrder.id.ToString());
 
                             return "SUCCESS";
                         }

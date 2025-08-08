@@ -90,25 +90,25 @@
                 }
 
                 var statusPayment = '@ViewBag.statusPayment';
-                var order = '@ViewBag.orderId';
+                var shoppingCartId = '@ViewBag.shoppingCartId';
                 var secuence = '@ViewBag.secuence';
-                console.log('statusPayment', statusPayment, order, secuence);
+                console.log('statusPayment', statusPayment, shoppingCartId, secuence);
 
                 if (statusPayment == 'SUCCESS') {
                     sleep(3000).then(() => { 
-                        document.getElementById('idLoading').style.visibility = 'visible'; 
-                        send_Data(false, 'SUCCESS', order, secuence);
+                        document.getElementById('idLoading').style.visibility = 'visible';
+                        send_Data(false, 'SUCCESS', shoppingCartId, secuence);
                     });
                 }
 
             })
 
-            function send_Data(errorExits, paymentStatus, orderId, secuence) {
+            function send_Data(errorExits, paymentStatus, shoppingCartId, secuence) {
 
                 var result = {
                     error: errorExits,
                     status: paymentStatus,
-                    order: orderId,
+                    shoppingCartId: shoppingCartId,
                     secuence: secuence
                 }
                 console.log('parameters', result);
@@ -118,7 +118,7 @@
                  var parameters = {
                     error: errorExits,
                     status: paymentStatus,
-                    order: orderId,
+                    shoppingCartId: shoppingCartId,
                     secuence: secuence
                 }
 

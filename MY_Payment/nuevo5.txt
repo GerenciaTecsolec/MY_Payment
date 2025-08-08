@@ -22,10 +22,7 @@ APIs del proceso de pago
 Payment/confirm
 luego del debito, hace: payment/debit-status/order/<orderId>
 
-
-https://tecsolec.com/payment-qa?tc=3368883621568937982&ad=d6b7bec8-657f-4c60-9dcb-6a81d5455ebd&ts=e575c05f-f7b5-478c-80af-fa86280a64ab
-
-https://tecsolec.com/payment-qa?tc=3368883621568937982&ad=d6b7bec8-657f-4c60-9dcb-6a81d5455ebd&ts=40811607-24b0-4cde-82a9-5e42ba38f8a1
+https://tecsolec.com/payment-qa?tc=3368883621568937982&ad=d6b7bec8-657f-4c60-9dcb-6a81d5455ebd&ts=8faf9f6f-eb89-4d5c-89f4-05936e6b10a2
 
 
 Estados de las ordenes
@@ -107,21 +104,3 @@ No se muestra la fecha de nacimiento del chef, la que ingrese en el registro
 
 En la lista de los chefs, se ven undefined cunado no se pone apellido materno
 En caso de no existior la zona cerca a la direccion, esta se guarda sin zona
-
-https://tecsolec.com/my-admin-qa/images/flag/ecuador.png
-
-// const lastUpdateTimeDiffInMinutes = checkIfCloseToCutOffTime(currentTime, cutOffTime, timezone);
-      // console.info(`difference in minutes last update: ${diffInMinutes}`);
-
-      const processTimeDiffInMinutes = checkIfCloseToCutOffTime(processTime, cutOffTime, timezone);
-      console.info(`difference in minutes last update: ${diffInMinutes}`);
-
-      // const lastUpdateTimeIsNearCutOffTime = lastUpdateTimeDiffInMinutes < 0
-      //   ? true
-      //   : lastUpdateTimeDiffInMinutes <= Number(confirmationMarginTime);
-
-      // const processTimeIsNearCutOffTime = processTimeDiffInMinutes < 0
-      //   ? true
-      //   : processTimeDiffInMinutes <= Number(confirmationMarginTime);
-
-      // const shouldConfirmaOrder = lastUpdateTimeIsNearCutOffTime || processTimeIsNearCutOffTime;

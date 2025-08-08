@@ -149,13 +149,16 @@
             })
 
             function ConfirmPayment() {
+
                 document.getElementById('btnConfirm').style.visibility = 'hidden';
                 const searchParams = new URLSearchParams(window.location.search);
+
                 var parameters = {
                     tc: searchParams.get('tc'),
                     ts: searchParams.get('ts'),
                     ad: searchParams.get('ad')
                 }
+
                 $.ajax({
                     type: "POST",
                     url: '@Url.Action("ConfirmPayment", "Home")',
@@ -166,6 +169,7 @@
                         document.getElementById('idLoading').style.visibility = 'visible';
                     },
                     success: function (result) {
+                        console.log(result);
                         const error = result?.error;
                         const status = result?.resultCode;
                         const codeStatus = result?.codeStatus;
@@ -175,23 +179,24 @@
                         else
                         {
                             if (codeStatus == 36) {
-                                console.log('entro al 36');
+                                // 3DS challenge requested, waiting CRES
+                                // Se redirecciona para mostrar el challenge
                                 var url = $('#RedirectTo').val();
-                                window.location.href = url + "?order=" + result?.order + "&ts=" + searchParams.get('ts');
+                                window.location.href = url + "?cart=" + result?.shoppingCartId + "&ts=" + searchParams.get('ts');
                             }
                             if (codeStatus == 35) {
-                                console.log('entro al 35');
+                                // 3DS method requested, waiting to continue
                                 document.getElementById('idLoading').style.visibility = 'visible';
-                                sleep(6000).then(() => { ContinueProcess(result?.order, ''); });
+                                sleep(6000).then(() => { ContinueProcess(result?.shoppingCartId, '', result?.clientAddressId); });
                             }
                             if(codeStatus == 31){
-                                console.log('entro al 31');
-                                document.getElementById('hiddenOrderId').value = result?.order;
+                                // Waiting for OTP
+                                document.getElementById('hiddenOrderId').value = result?.shoppingCartId;
                                 document.getElementById('idLoading').style.visibility = 'hidden';
                                 document.getElementById('otp').style.display = 'block';
                             }
                             if (codeStatus == 3){
-                                console.log('entro al 3');
+                                // Paid result
                                 document.getElementById('idLoading').style.visibility = 'hidden';
                                 showAlerts(status,result?.order,result?.secuence);
                             }
@@ -204,14 +209,15 @@
                 return new Promise(resolve => setTimeout(resolve, ms));
             }
 
-            function ContinueProcess(orderId, cressId) {
+            function ContinueProcess(shoppingCartId, cressId, clientAddressId) {
+
                 document.getElementById('idLoading').style.visibility = 'visible';
                 const searchParams = new URLSearchParams(window.location.search);
                 var parameters = {
                     tc: '',
                     ts: searchParams.get('ts'),
-                    ad: '',
-                    order: orderId,
+                    ad: clientAddressId,
+                    cart: shoppingCartId,
                     cresId: cressId
                 }
                 $.ajax({
@@ -225,14 +231,14 @@
                     },
                     success: function (result) {
                         const status = result?.paymentStatus;
-                        const order = result?.orderId;
+                        const shoppingCartId = result?.shoppingCartId;
                         const secuence = result?.secuence;
-                        showAlerts(status, order, secuence);
+                        showAlerts(status, shoppingCartId, secuence);
                     }
                 })
             }
 
-            function showAlerts(status, order, secuence) {
+            function showAlerts(status, shoppingCartId, secuence) {
                 document.getElementById('card').style.display = "none";
                 switch (status) {
                     case 'SUCCESS':
@@ -242,7 +248,7 @@
                         document.getElementById('paymentError').style.display = "none";
                         sleep(3000).then(() => {
                             document.getElementById('idLoading').style.visibility = 'visible';
-                            send_Data(false, 'SUCCESS', order, secuence);
+                            send_Data(false, 'SUCCESS', shoppingCartId, secuence);
                         });
                         break;
                     case 'FAILED':
@@ -262,15 +268,15 @@
 
             function ConfirmOtp() {
                 var otp = document.getElementById('txtOtp').value;
-                var orderId = document.getElementById('hiddenOrderId').value;
-                ContinueProcess(orderId, otp);
+                var shoppingCartId = document.getElementById('hiddenOrderId').value;
+                ContinueProcess(shoppingCartId, otp);
             }
 
-            function send_Data(errorExits, paymentStatus, orderId, secuence) {
+            function send_Data(errorExits, paymentStatus, shoppingCartId, secuence) {
                 var parameters = {
                     error: errorExits,
                     status: paymentStatus,
-                    order: orderId,
+                    shoppingCartid: shoppingCartId,
                     secuence: secuence
                 }
 

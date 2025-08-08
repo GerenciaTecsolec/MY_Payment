@@ -14,7 +14,7 @@
     public class NuveiTransaction
     {
         public Guid id { get; set; }
-        public Guid orderId { get; set; }
+        public Guid shoppingCartId { get; set; }
         public string nuveiTransactionId { get; set; }
         public string? status { get; set; }
         public string? currentStatus { get; set; }

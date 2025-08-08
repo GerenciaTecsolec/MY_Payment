@@ -7,7 +7,9 @@
         public string? codeStatus { get; set; }
         public string? iframe { get; set; }
         public string? order { get; set; }
+        public string? shoppingCartId { get; set; }
         public string? transactionId { get; set; }
         public string? secuence { get; set; }
+        public string? clientAddressId { get; set; }
     }
 }

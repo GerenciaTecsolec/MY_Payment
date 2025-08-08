@@ -3,7 +3,10 @@ using MY_Payment.Models;
 using MY_Payment.Models.Request;
 using MY_Payment.Models.Response;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System.Net.Http.Headers;
 using System.Text;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace MY_Payment.Service
 {
@@ -93,7 +96,54 @@ namespace MY_Payment.Service
             }
         }
 
-        public async Task<NuveiTransactionFull?> GetTransactionByOrderId(string tokenSession, string tokenApp, string orderId)
+
+        public async Task<string?> GetCurrentShoppingCart(string tokenSession, string tokenApp)
+        {
+            var baseUrl = _configuration.GetValue<string>("globalVariables:hostUrl");
+
+            if (string.IsNullOrWhiteSpace(baseUrl))
+            {
+                _logger.LogError("{event}{message}", "GetCurrentShoppingCart", "Missing or invalid hostUrl configuration.");
+                return null;
+            }
+
+            var requestUri = $"{baseUrl}/api/ShoppingCart/client";
+
+            try
+            {
+                using var client = new HttpClient
+                {
+                    Timeout = TimeSpan.FromSeconds(25)
+                };
+
+                client.DefaultRequestHeaders.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                client.DefaultRequestHeaders.Add("tokenSession", tokenSession);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenApp);
+                
+                var response = await client.GetAsync(requestUri);
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var jObject = JObject.Parse(responseContent);
+                    var shoppingCartId = jObject["result"]?["id"]?.ToString();
+                    return shoppingCartId;
+                }
+
+                _logger.LogError("{event}{message}{response}", "GetCurrentShoppingCart", "Error getting client shoppingCart.", responseContent);
+                return null;
+            } 
+            catch(Exception exception)
+            {
+                _logger.LogCritical("{event}{message}{exception}", "GetCurrentShoppingCart", "Error", exception);
+                throw;
+            }
+        }
+
+        public async Task<NuveiTransactionFull?> GetTransactionByShoppingCartId(string tokenSession, string tokenApp, string shoppingCartId)
         {
             string url = "";
             using (var client = new HttpClient())
@@ -101,7 +151,7 @@ namespace MY_Payment.Service
                 try
                 {
                     url = _configuration.GetValue<string>("globalVariables:hostUrl")!;
-                    var path = "/api/Order/id/transaction?orderId=" + orderId;
+                    var path = "/api/ShoppingCart/id/transaction?shoppingCartId=" + shoppingCartId;
                     client.CancelPendingRequests();
                     client.DefaultRequestHeaders.Clear();
                     client.Timeout = TimeSpan.FromSeconds(25);
@@ -118,13 +168,13 @@ namespace MY_Payment.Service
                     else
                     {
                         string readTask = await response.Content.ReadAsStringAsync();
-                        _logger.LogError("{event}{message}{other_data}", "ClientService-GetTransactionByOrderId", "Error get order transaction by orderId", readTask);
+                        _logger.LogError("{event}{message}{other_data}", "GetTransactionByShoppingCartId", "Error get order transaction by orderId", readTask);
                         return null;
                     }
                 }
                 catch (Exception error)
                 {
-                    _logger.LogCritical("{event}{message}{exception}", "ClientService-GetTransactionByOrderId", "Error", error);
+                    _logger.LogCritical("{event}{message}{exception}", "GetTransactionByShoppingCartId", "Error", error);
                     throw;
                 }
             }

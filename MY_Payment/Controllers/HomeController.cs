@@ -126,7 +126,7 @@ namespace MY_Payment.Controllers
                     result!.resultCode,
                     result!.codeStatus,
                     result!.iframe,
-                    result!.order,
+                    result!.shoppingCartId,
                     result!.transactionId,
                     result!.secuence
                 });
@@ -146,23 +146,24 @@ namespace MY_Payment.Controllers
         public async Task<JsonResult> VerifyTransaction(Parameters parameters)
         {
             string sessionId = parameters.ts ?? "";
-            string orderId = parameters.order!;
+            string shoppingCartId = parameters.cart!;
             string cresId = parameters!.cresId!;
+            string clientAddressId = parameters!.ad!;
             string tokenApp = await _authService.GenerateTokenApplication();
             string tokenSession = await _authService.GetCurrentTokenSession(sessionId, tokenApp);
             Client? client = await _clientService.GetClientInfo(tokenSession, tokenApp);
             string paymentStatus = "";
             if (client != null)
             {
-                string result = await _paymentService.VerifyTransaction(tokenSession, tokenApp, orderId, cresId, client);
+                string result = await _paymentService.VerifyTransaction(tokenSession, tokenApp, shoppingCartId, cresId, client, clientAddressId);
                 paymentStatus = result;
             }
             ViewBag.showLoading = 'Y';
             return Json(new
             {
-                paymentStatus = paymentStatus,
-                orderId = orderId,
-                secuence = "1213"
+                paymentStatus,
+                shoppingCartId,
+                secuence = "0"
             });
         }
 
@@ -185,5 +186,6 @@ namespace MY_Payment.Controllers
         public string? ad { get; set; }
         public string? order { get; set; }
         public string? cresId { get; set; }
+        public string? cart { get; set; }
     }
 }

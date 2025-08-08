@@ -29,28 +29,32 @@ namespace MY_Payment.Controllers
                 ViewBag.hostUrl = hostUrl;
                 ViewBag.hostAppLink =  hostAppLink;
                 var queryString = HttpContext.Request.QueryString!.ToString();
+                //window.parent.location.href = '{0}/Verify/index?cart={1}&cres={2}&ts={3}&sec={4}&ad={6}';
                 if (!string.IsNullOrEmpty(queryString))
                 {
                     string sessionId = HttpContext.Request.Query["ts"].ToString();
-                    string orderId = HttpContext.Request.Query["order"].ToString();
+                    string shoppingCartId = HttpContext.Request.Query["cart"].ToString();
                     string cresId = HttpContext.Request.Query["cres"].ToString();
                     string secuence = HttpContext.Request.Query["sec"].ToString();
+                    string clientAddressId = HttpContext.Request.Query["ad"].ToString();
+
                     string tokenApp = await _authService.GenerateTokenApplication();
                     string tokenSession = await _authService.GetCurrentTokenSession(sessionId, tokenApp);
+                    
                     Client? client = await _clientService.GetClientInfo(tokenSession, tokenApp);
                     if (client != null)
                     {
-                        string result = await _paymentService.VerifyTransaction(tokenSession, tokenApp, orderId, cresId ?? "", client);
+                        string result = await _paymentService.VerifyTransaction(tokenSession, tokenApp, shoppingCartId, cresId ?? "", client, clientAddressId);
                         ViewBag.statusPayment = result;
                         ViewBag.showLoading = 'N';
-                        ViewBag.orderId = orderId;
+                        ViewBag.shoppingCartId = shoppingCartId;
                         ViewBag.secuence = secuence;
                     }
                     else
                     {
                         ViewBag.showLoading = 'N';
                         ViewBag.statusPayment = "ERROR";
-                        ViewBag.orderId = "";
+                        ViewBag.shoppingCartId = "";
                         ViewBag.secuence = "";
                     }
                 }
@@ -58,7 +62,7 @@ namespace MY_Payment.Controllers
                 {
                     ViewBag.showLoading = 'N';
                     ViewBag.statusPayment ="ERROR";
-                    ViewBag.orderId = "";
+                    ViewBag.shoppingCartId = "";
                     ViewBag.secuence = "";
                 }
                 

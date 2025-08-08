@@ -1,7 +1,5 @@
-﻿using Microsoft.AspNetCore.Http.Features;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using MY_Payment.Models;
-using MY_Payment.Models.Response;
 using MY_Payment.Service;
 
 namespace MY_Payment.Controllers
@@ -28,13 +26,14 @@ namespace MY_Payment.Controllers
                 if (!string.IsNullOrEmpty(queryString))
                 {
                     string sessionId = HttpContext.Request.Query["ts"].ToString();
-                    string orderId = HttpContext.Request.Query["order"].ToString();
+                    string shoppingCartId = HttpContext.Request.Query["cart"].ToString();
+
                     string tokenApp = await _authService.GenerateTokenApplication();
                     string tokenSession = await _authService.GetCurrentTokenSession(sessionId, tokenApp);
                     Client? client = await _clientService.GetClientInfo(tokenSession, tokenApp);
                     if (client != null)
                     {
-                        NuveiTransactionFull? orderTransaction = await _clientService.GetTransactionByOrderId(tokenSession, tokenApp, orderId)!;
+                        NuveiTransactionFull? orderTransaction = await _clientService.GetTransactionByShoppingCartId(tokenSession, tokenApp, shoppingCartId)!;
                         ViewBag.iframe = orderTransaction!.browserInfo!.challengeRequest;
                         ViewBag.statusPayment = null;
                     }
