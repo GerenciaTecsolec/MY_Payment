@@ -361,7 +361,8 @@ namespace MY_Payment.Service
                                 {
                                     error = false,
                                     codeStatus = statusDetail!.ToString(),
-                                    shoppingCartId = shoppingCartId
+                                    shoppingCartId = shoppingCartId,
+                                    clientAddressId = clientAddressId
                                 };
                             }
                             if (statusDetail == 39)

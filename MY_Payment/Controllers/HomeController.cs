@@ -135,7 +135,8 @@ namespace MY_Payment.Controllers
                     result!.iframe,
                     result!.shoppingCartId,
                     result!.transactionId,
-                    result!.secuence
+                    result!.secuence,
+                    result!.clientAddressId
                 });
             }
             catch(Exception error)

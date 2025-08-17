@@ -43,6 +43,7 @@
                         </div>
                     </div>
                     <input type="hidden" id="hiddenOrderId" name="custId" value="">
+                    <input type="hidden" id="hiddenAddressId" name="addressId" value="">
                     <button class="btn btn-success btn-success-my px-5 w-100 fs-5 white-color-my" type="button" onclick="ConfirmOtp()" id="btnConfirm">Confirmar</button>
                 </div>
             </form>
@@ -192,6 +193,7 @@
                             if(codeStatus == 31){
                                 // Waiting for OTP
                                 document.getElementById('hiddenOrderId').value = result?.shoppingCartId;
+                                document.getElementById('hiddenAddressId').value = result?.clientAddressId;
                                 document.getElementById('idLoading').style.visibility = 'hidden';
                                 document.getElementById('otp').style.display = 'block';
                             }
@@ -269,7 +271,9 @@
             function ConfirmOtp() {
                 var otp = document.getElementById('txtOtp').value;
                 var shoppingCartId = document.getElementById('hiddenOrderId').value;
-                ContinueProcess(shoppingCartId, otp);
+                var addressId = document.getElementById('hiddenAddressId').value;
+                console.log('address', addressId);
+                ContinueProcess(shoppingCartId, otp, addressId);
             }
 
             function send_Data(errorExits, paymentStatus, shoppingCartId, secuence) {
