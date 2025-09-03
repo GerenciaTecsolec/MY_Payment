@@ -22,8 +22,23 @@ APIs del proceso de pago
 Payment/confirm
 luego del debito, hace: payment/debit-status/order/<orderId>
 
-https://tecsolec.com/payment-qa?tc=3368883621568937982&ad=d6b7bec8-657f-4c60-9dcb-6a81d5455ebd&ts=8faf9f6f-eb89-4d5c-89f4-05936e6b10a2
+https://tecsolec.com/payment-qa?tc=3368883621568937982&ad=d6b7bec8-657f-4c60-9dcb-6a81d5455ebd&ts=df185b77-58a7-4ced-bc60-e0e7619d4cb0
+https://tecsolec.com/payment-qa?tc=3368883621568937982&ad=d6b7bec8-657f-4c60-9dcb-6a81d5455ebd&ts=d5f09062-e264-469b-8fc6-29009834afce
 
+https://tecsolec.com/payment-qa?tc=3368883621568937982&ad=d6b7bec8-657f-4c60-9dcb-6a81d5455ebd&ts=11a36434-47c9-4482-af6c-3ffa69854000
+
+
+"message_id=AU-106920&
+cres=U3VjY2VzcyBBdXRoZW50aWNhdGlvbg%3D%3D&transStatus=Y
+&shoppingCartId=ea659728-f401-4efb-8a63-9d7f28d928b9
+&tokenSessionId=0742801d-0012-447b-b596-fff7da2bf507
+&clientAddressId=d6b7bec8-657f-4c60-9dcb-6a81d5455ebd"
+
+"?cart=ea659728-f401-4efb-8a63-9d7f28d928b9&cres=U3VjY2VzcyBBdXRoZW50aWNhdGlvbg==&ts=0742801d-0012-447b-b596-fff7da2bf507&sec=0&ad=d6b7bec8-657f-4c60-9dcb-6a81d5455ebd"
+
+https://tecsolec.com/payment-qa/Verify/index?cart=00000000-0000-0000-0000-000000000000&cres=U3VjY2VzcyBBdXRoZW50aWNhdGlvbg==&ts=950be3f6-99c7-4704-93f5-3168a8ce93c0&sec=0&ad=d6b7bec8-657f-4c60-9dcb-6a81d5455ebd
+
+"message_id=AU-106842&cres=U3VjY2VzcyBBdXRoZW50aWNhdGlvbg%3D%3D&transStatus=Y&shoppingCartId=0d25371c-b3cd-4283-a63b-d50e7d362907&tokenSessionId=950be3f6-99c7-4704-93f5-3168a8ce93c0&clientAddressId=d6b7bec8-657f-4c60-9dcb-6a81d5455ebd"
 
 Estados de las ordenes
 ORDER_STARTED => inicio dela orden
@@ -104,3 +119,6 @@ No se muestra la fecha de nacimiento del chef, la que ingrese en el registro
 
 En la lista de los chefs, se ven undefined cunado no se pone apellido materno
 En caso de no existior la zona cerca a la direccion, esta se guarda sin zona
+
+<!DOCTYPE html SYSTEM 'about:legacy-compat'><html class='no-js' lang='en'xmlns='http://www.w3.org/1999/xhtml'><head><meta http-equiv='Content-Type' content='text/html; charset=utf-8'/><meta charset='utf-8'/></head><body OnLoad='OnLoadEvent();'><form action='https://ccapi-stg.paymentez.com/v2/3ds/mockchallenge' method='POST' id='threeD' name='threeD'>message_id: <input type='area' id='message_id' name='message_id' value='AU-106855' />;creq: <input type='area' id='creq'name='creq' value='ewogICAiYWNzVHJhbnNJRCIgOiAiMjZjZGI3ZjAtOTE0My00M2I0LTlhM2YtYWUwZWE1MzUyMzhjIiwKICA' />; "term_url: <input type='area' id='term_url' name='term_url' value='http://localhost:5159/api/Payment/webhook/payment-challenge/0d25371c-b3cd-4283-a63b-d50e7d362907/df185b77-58a7-4ced-bc60-e0e7619d4cb0/d6b7bec8-657f-4c60-9dcb-6a81d5455ebd' />;
+            <input type='submit' value='proceed to issuer'></form><script language='Javascript'>document.getElementById('threeD').submit(); </script></body></body></html>

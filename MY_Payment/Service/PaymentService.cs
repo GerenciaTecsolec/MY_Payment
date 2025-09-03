@@ -657,7 +657,7 @@ namespace MY_Payment.Service
             string hostUrlAdmin = configuration.GetValue<string>("globalVariables:hostUrlAdmin")!;
 
             string content = String.Format(@"<div style=""display:grid;width:600px;margin:0px auto;border:3px solid #d1d1d1;border-radius: 20px;background-color: #FFFFFF;"">
-                                                <div style=""background-color: #1aa182 !important;display: flex; justify-content: center; align-items: center;padding: 20px;"">
+                                                <div style=""background-color: #1aa182 !important;justify-content: center;align-items: center;padding: 10px;border-top-left-radius:17px;border-top-right-radius:17px;text-align:center;"">
                                                     <img src=""{5}/images/background/background-dos.png"" height=""90""/>
                                                 </div>
                                                 <p style=""text-indent: 0pt;line-height: 0pt;text-align: center;"">
@@ -666,8 +666,8 @@ namespace MY_Payment.Service
                                                     AUTORIZAC&Oacute;N DE COMPRA
                                                   </span>
                                                 </p>
-                                                <div style=""background-color: #19a182;width: 400px; height:62px;margin-bottom: 24px;margin-top: 24px;margin-left:100px;"">
-                                                  <div style=""background-color: #FFFFFF;width: 390px; height:61px;"">
+                                                <div style=""background-color:#19a182;margin-bottom:24px;margin-top:24px;padding-bottom:6px;margin-left:50px;margin-right:50px;"">
+                                                  <div style=""background-color: #FFFFFF;"">
                                                     <div style=""padding: 4px;"">
                                                       <p style=""text-indent: 0pt;line-height: 0pt;text-align: left;"">
                                                         <span
@@ -684,8 +684,8 @@ namespace MY_Payment.Service
                                                     </div>
                                                   </div>
                                                 </div>
-                                                <div style=""background-color: #19a182;width: 400px; height:62px;margin-bottom: 24px;margin-left:100px;"">
-                                                  <div style=""background-color: #FFFFFF;width: 390px; height:61px;"">
+                                                <div style=""background-color:#19a182;margin-bottom:24px;padding-bottom:6px;margin-left:50px;margin-right:50px;"">
+                                                  <div style=""background-color: #FFFFFF;"">
                                                     <div style=""padding: 4px;"">
                                                       <p style=""text-indent: 0pt;line-height: 0pt;text-align: left;"">
                                                         <span
@@ -702,8 +702,8 @@ namespace MY_Payment.Service
                                                     </div>
                                                   </div>
                                                 </div>
-                                                <div style=""background-color: #19a182;width: 400px; height:62px;margin-bottom: 24px;margin-left:100px;"">
-                                                  <div style=""background-color: #FFFFFF;width: 390px; height:61px;"">
+                                                <div style=""background-color:#19a182;margin-bottom:24px;padding-bottom:6px;margin-left:50px;margin-right:50px;"">
+                                                  <div style=""background-color: #FFFFFF;"">
                                                     <div style=""padding: 4px;"">
                                                       <p style=""text-indent: 0pt;line-height: 0pt;text-align: left;"">
                                                         <span
@@ -720,8 +720,8 @@ namespace MY_Payment.Service
                                                     </div>
                                                   </div>
                                                 </div>
-                                                <div style=""background-color: #19a182;width: 400px; height:62px;margin-bottom: 24px;margin-left:100px;"">
-                                                  <div style=""background-color: #FFFFFF;width: 390px; height:61px;"">
+                                                <div style=""background-color:#19a182;margin-bottom:24px;padding-bottom:6px;margin-left:50px;margin-right:50px;"">
+                                                  <div style=""background-color: #FFFFFF;"">
                                                     <div style=""padding: 4px;"">
                                                       <p style=""text-indent: 0pt;line-height: 0pt;text-align: left;"">
                                                         <span
@@ -738,8 +738,8 @@ namespace MY_Payment.Service
                                                     </div>
                                                   </div>
                                                 </div>
-                                                <div style=""background-color: #19a182;width: 400px; height:62px;margin-bottom: 24px;margin-left:100px;"">
-                                                  <div style=""background-color: #FFFFFF;width: 390px; height:61px;"">
+                                                <div style=""background-color:#19a182;margin-bottom:24px;padding-bottom:6px;margin-left:50px;margin-right:50px;"">
+                                                  <div style=""background-color: #FFFFFF;border-bottom-right-radius:4px;"">
                                                     <div style=""padding: 4px;"">
                                                       <p style=""text-indent: 0pt;line-height: 0pt;text-align: left;"">
                                                         <span
